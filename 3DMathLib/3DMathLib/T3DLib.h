@@ -244,11 +244,11 @@ typedef struct CYLINDRICAL3D_TYP {
 }CYLINDRICAL3D, *CYLINDRICAL3D_PTR;
 
 //3d 球面坐标系食所有角坐标系中最复杂的。
-typedef struct SHERICAL3D_TYP {
+typedef struct SPHERICAL3D_TYP {
     float   p;         //到原点的距离
     float   theta;     //线段0->p 和 正z轴 之间的夹角
     float   phi;       //线段0->p 和 在x－y平面上的投影 与正x轴 之间的夹角
-}SHERICAL3D, *SHERICAL3D_PTR;
+}SPHERICAL3D, *SPHERICAL3D_PTR;
 
 /******************************************************************************/
 /******************************************************************************/
@@ -614,6 +614,66 @@ QUAT_COPY(QUAT_PTR qdst,QUAT_PTR qsrc) {
 /******************************************************************************/
 /******************************************************************************/
 
+/*
+    函数原型
+ */
+
+//通用三角函数
+float
+Fast_Sin(float theta);
+
+float
+Fast_Cos(float theta);
+
+//距离函数
+int
+Fast_Distance_2D(int x,int y);
+
+float
+Fast_Distance_3D(float x,float y,float z);
+
+
+//极坐标,柱面坐标,球面坐标
+void
+POLAR2D_To_POINT2D(POLAR2D_PTR polar, POINT2D_PTR rect);
+
+void
+POLAR2D_To_RectXY(POLAR2D_PTR polar, float *x, float *y);
+
+void
+POINT2D_To_POLAR2D(POINT2D_PTR rect,POLAR2D_PTR polar);
+
+void
+POINT2D_To_PolarRTh(POINT2D_PTR rect,float *r , float *theta);
+
+//柱面坐标 函数
+void
+CYLINDRICAL3D_To_POINT3D(CYLINDRICAL3D_PTR cyl,POINT3D_PTR rect);
+
+void
+CYLINDRICAL3D_To_RectXYZ(CYLINDRICAL3D_PTR cyl,float *x,float *y,float *z);
+
+void
+POINT3D_To_CYLINDRICAL3D(POINT3D_PTR rect,CYLINDRICAL3D_PTR cyl);
+
+void
+POINT3D_To_CylindricalRThZ(POINT3D_PTR rect,float *r ,float *theta, float *z);
+
+//球面坐标 函数
+void
+SPHERICAL3D_To_POINT3D(SPHERICAL3D_PTR sph,POINT3D_PTR rect);
+
+void
+SPHERICAL3D_To_RectXYZ(SPHERICAL3D_PTR sph, float *x,float *y,float *z);
+
+void
+POINT3D_To_SPHERICAL3D(POINT3D_PTR rect,SPHERICAL3D sph);
+
+void
+POINT3D_To_SphericalPThPh(POINT3D_PTR rect,float *p ,float *theta, float *phi);
+
+
+//2D向量函数
 
 
 
@@ -625,11 +685,10 @@ QUAT_COPY(QUAT_PTR qdst,QUAT_PTR qsrc) {
 
 
 
-
-
-
-
-
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
+/******************************************************************************/
 
 
 #endif /* defined(___DMathLib__T3DLib__) */

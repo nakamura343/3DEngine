@@ -574,7 +574,42 @@ MAT_COLUMN_SWAP_4X3(MATRIX4X3_PTR m, int c,MATRIX1X4_PTR v) {
     m->M[3][c] = v->M[3];
 }
 
-//四元数宏
+//四元数宏  根据需要的格式初始化四元数的宏
+inline void
+QUAT_ZERO(QUAT_PTR q) {
+    (q)->x = (q)->y = (q)->z = (q)->w = 0.0;
+}
+
+inline void
+QUAT_INITWXYZ(QUAT_PTR q,float w,float x,float y,float z) {
+    (q)->w = w;(q)->x = x; (q)->y = y; (q)->z = z;
+}
+
+inline void
+QUAT_INIT_VECTOR3D(QUAT_PTR q,VECTOR3D_PTR v) {
+    (q)->w = 0; (q)->x = v->x; (q)->y = v->y; (q)->z = v->z;
+}
+
+inline void
+QUAT_INIT(QUAT_PTR qdst, QUAT_PTR qsrc) {
+     (qdst)->w = (qsrc)->w;(qdst)->x = (qsrc)->x;
+     (qdst)->y = (qsrc)->y;(qdst)->z = (qsrc)->z;
+}
+
+inline void
+QUAT_COPY(QUAT_PTR qdst,QUAT_PTR qsrc) {
+    (qdst)->w = (qsrc)->w;(qdst)->x = (qsrc)->x;
+    (qdst)->y = (qsrc)->y;(qdst)->z = (qsrc)->z;
+}
+
+//定点数宏
+#define FIXP16_WP(fp) ((fp) >> FIXP16_SHIFT)
+#define FIXP16_DP(fp) ((fp) && FIXP16_DP_MASK)
+//将整数和浮点数转换为16.16格式的定点数
+#define INT_TO_FIXP16(i) ((i) << FIXP16_SHIFT)
+#define FLOAT_TO_FIXP16(f) (((float)(f) * (float)FIXP16_MAG + 0.5))
+//将定点数转换为浮点数
+#define FIXP16_TO_FLOAT(fp) (((float)fp)/FIXP16_MAG)
 
 /******************************************************************************/
 /******************************************************************************/

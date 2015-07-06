@@ -21,14 +21,6 @@
 FILE    *fp_error  = NULL;      //general error file
 char    error_filename[80];     //error file name
 
-
-
-
-
-
-
-
-
 float cos_look[361];
 float sin_look[361];
 /*
@@ -45,7 +37,6 @@ Build_Sin_Cos_Tables(void) {
         sin_look[ang] = sin(theta);
     }
 }
-
 
 /**
  *  this function computers the distance from 0,0 to x,y with 3.5% error

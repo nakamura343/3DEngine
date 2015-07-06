@@ -740,8 +740,60 @@ float VECTOR4D_CosTh(VECTOR4D_PTR va, VECTOR4D_PTR vb);
 
 void VECTOR4D_Print(VECTOR4D_PTR va, char *name);
 
-
 /******************************************************************************/
+// 2x2 matrix functions (note there others in T3DLib1.cpp|h)
+void Mat_Init_2X2(MATRIX2X2_PTR ma,float m00,float m01,float m10,float m11);
+
+void Print_Mat_2X2(MATRIX2X2_PTR ma, char *name);
+
+float Mat_Det_2X2(MATRIX2X2_PTR m);
+
+void Mat_Add_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR msum);
+
+void Mat_Mul_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR mprod);
+
+int Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi);
+
+int Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /******************************************************************************/
 /******************************************************************************/
 /******************************************************************************/

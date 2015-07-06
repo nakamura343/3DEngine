@@ -589,13 +589,396 @@ VECTOR3D_Print(VECTOR3D_PTR va, char *name) {
 
 
 /******************************************************************************/
+
+/**
+ *  this function adds va+vb and return it in vsum
+ *
+ *  @param va   <#va description#>
+ *  @param vb   <#vb description#>
+ *  @param vsum <#vsum description#>
+ */
+void
+VECTOR4D_ADD(VECTOR4D_PTR va, VECTOR4D_PTR vb, VECTOR4D_PTR vsum) {
+    vsum->x = va->x + vb->x;
+    vsum->y = va->y + vb->y;
+    vsum->z = va->z + vb->z;
+    vsum->w = 1;
+}
+/**
+ *  this function adds va+vb and returns the result on  the stack
+ *
+ *  @param va <#va description#>
+ *  @param vb <#vb description#>
+ *
+ *  @return <#return value description#>
+ */
+VECTOR4D
+VECTOR4D_ADD(VECTOR4D_PTR va , VECTOR4D_PTR vb) {
+    VECTOR4D vsum;
+    
+    vsum.x = va->x + vb->x;
+    vsum.y = va->y + vb->y;
+    vsum.z = va->z + vb->z;
+    vsum.w = 1;
+    return vsum;
+}
+/**
+ *  this function subtracts va-vb and return it in vdiff
+ *
+ *  @param va    <#va description#>
+ *  @param vb    <#vb description#>
+ *  @param vdiff <#vdiff description#>
+ */
+void
+VECTOR4D_Sub(VECTOR4D_PTR va, VECTOR4D_PTR vb, VECTOR4D_PTR vdiff) {
+    vdiff->x = va->x - vb->x;
+    vdiff->y = va->y - vb->y;
+    vdiff->z = va->z - vb->z;
+    vdiff->w = 1;
+}
+/**
+ *  this function subtracts va-vb and returns the result on the stack
+ *
+ *  @param va <#va description#>
+ *  @param vb <#vb description#>
+ *
+ *  @return <#return value description#>
+ */
+VECTOR4D
+VECTOR4D_Sub(VECTOR4D_PTR va, VECTOR4D_PTR vb) {
+    VECTOR4D vdiff;
+    
+    vdiff.x = va->x - vb->x;
+    vdiff.y = va->y - vb->y;
+    vdiff.z = va->z - vb->z;
+    vdiff.w = 1;
+    return vdiff;
+}
+/**
+ *  this function scales a vector by the constant k,in place , note w is left unchanged
+ *
+ *  @param k  <#k description#>
+ *  @param va <#va description#>
+ */
+void
+VECTOR4D_Scale(float k,VECTOR4D_PTR va) {
+    // multiply each component by scaling factor
+    va->x*=k;
+    va->y*=k;
+    va->z*=k;
+    va->w = 1;
+}
+/**
+ *  this function scales a vector by the constant k,
+ *  leaves the original unchanged, and returns the result
+ *  in vres as well as on the stack
+ *  @param k       <#k description#>
+ *  @param va      <#va description#>
+ *  @param vscaled <#vscaled description#>
+ */
+void
+VECTOR4D_Scale(float k,VECTOR4D_PTR va,VECTOR4D_PTR vscaled) {
+    // multiply each component by scaling factor
+    vscaled->x = k*va->x;
+    vscaled->y = k*va->y;
+    vscaled->z = k*va->z;
+    vscaled->w = 1;
+}
+/**  点积
+ *  computes the dot product between va and vb
+ *
+ *  @param va <#va description#>
+ *  @param vb <#vb description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+VECTOR4D_Dot(VECTOR4D_PTR va,VECTOR4D_PTR vb) {
+    return (va->x * vb->x) + (va->y * vb->y) + (va->z * vb->z) ;
+}
+/**  叉积
+ *  this function computes the cross product between va and vb
+ *  and returns the vector that is perpendicular to each in vn
+ *  @param va <#va description#>
+ *  @param vb <#vb description#>
+ *  @param vn <#vn description#>
+ */
+void
+VECTOR4D_Cross(VECTOR4D_PTR va,VECTOR4D_PTR vb,VECTOR4D_PTR vn) {
+    vn->x =  ( (va->y * vb->z) - (va->z * vb->y) );
+    vn->y = -( (va->x * vb->z) - (va->z * vb->x) );
+    vn->z =  ( (va->x * vb->y) - (va->y * vb->x) );
+    vn->w = 1;
+}
+/**
+ *  this function computes the cross product between va and vb
+ *  and returns the vector that is perpendicular to each
+ *  @param va <#va description#>
+ *  @param vb <#vb description#>
+ *
+ *  @return <#return value description#>
+ */
+VECTOR4D
+VECTOR4D_Cross(VECTOR4D_PTR va,VECTOR4D_PTR vb) {
+    VECTOR4D vn;
+    
+    vn.x =  ( (va->y * vb->z) - (va->z * vb->y) );
+    vn.y = -( (va->x * vb->z) - (va->z * vb->x) );
+    vn.z =  ( (va->x * vb->y) - (va->y * vb->x) );
+    vn.w = 1;
+    return vn;
+}
+/**
+ *  computes the magnitude of a vector, slow
+ *
+ *  @param va <#va description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+VECTOR4D_Length(VECTOR4D_PTR va) {
+    return sqrtf(va->x*va->x + va->y*va->y + va->z*va->z) ;
+}
+/**
+ *  computes the magnitude of a vector using an approximation ;very fast
+ *
+ *  @param va <#va description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+VECTOR4D_Length_Fast(VECTOR4D_PTR va) {
+    return Fast_Distance_3D(va->x, va->y, va->z) ;
+}
+/**
+ *  normalizes the sent vector and returns the result
+ *
+ *  @param va <#va description#>
+ */
+void
+VECTOR4D_Normalize(VECTOR4D_PTR va) {
+    // compute length
+    float length = sqrtf(va->x*va->x + va->y*va->y + va->z*va->z);
+    
+    // test for zero length vector
+    // if found return zero vector
+    if (length < EPSILON_E5)
+        return;
+    
+    float length_inv = 1.0/length;
+    
+    // compute normalized version of vector
+    va->x*=length_inv;
+    va->y*=length_inv;
+    va->z*=length_inv;
+    va->w = 1;
+}
+/**
+ *  normalizes the sent vector and returns the result in vn
+ *
+ *  @param va <#va description#>
+ *  @param vn <#vn description#>
+ */
+void
+VECTOR4D_Normalize(VECTOR4D_PTR va,VECTOR4D_PTR vn) {
+    VECTOR4D_ZERO(vn);
+    // compute length
+    float length = sqrt(va->x*va->x + va->y*va->y + va->z*va->z);
+    
+    // test for zero length vector
+    // if found return zero vector
+    if (length < EPSILON_E5)
+        return;
+    
+    float length_inv = 1.0/length;
+    
+    // compute normalized version of vector
+    vn->x = va->x*length_inv;
+    vn->y = va->y*length_inv;
+    vn->z = va->z*length_inv;
+    vn->w = 1;
+}
+/**
+ these are the 4D version of the vector functions, they assume that the vectors
+  are 3D with a w, so w is left ;out of all the operations
+ */
+void
+VECTOR4D_Build(VECTOR4D_PTR init ,VECTOR4D_PTR term , VECTOR4D_PTR result) {
+    // build a 4d vector
+    result->x = term->x - init->x;
+    result->y = term->y - init->y;
+    result->z = term->z - init->z;
+    result->w = 1;
+}
+/**
+ *  this function returns the cosine of the angle between,two vectors. Note, 
+ *  we could compute the actual angle ;many many times, in further calcs we
+ *  will want ultimately compute cos of the angle, so why not just leave it!
+ *
+ *  @param va <#va description#>
+ *  @param vb <#vb description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+VECTOR4D_CosTh(VECTOR4D_PTR va, VECTOR4D_PTR vb) {
+    return(VECTOR4D_Dot(va,vb)/(VECTOR4D_Length(va)*VECTOR4D_Length(vb)));
+}
+
+void
+VECTOR4D_Print(VECTOR4D_PTR va, char *name) {
+    Write_Error("\n%s[",name);
+    for (int index=0; index<4; index++)
+        Write_Error("%f, ",va->M[index]);
+    Write_Error("]");
+
+}
+
 /******************************************************************************/
 
+// 2x2 matrix functions (note there others in T3DLib1.cpp|h)
+/**
+ *  this function fills a 2X2 matrix with the sent data in row major form
+ *
+ *  @param ma  <#ma description#>
+ *  @param m00 <#m00 description#>
+ *  @param m01 <#m01 description#>
+ *  @param m10 <#m10 description#>
+ *  @param m11 <#m11 description#>
+ */
+void
+Mat_Init_2X2(MATRIX2X2_PTR ma,float m00,float m01,float m10,float m11) {
+    ma->M00 = m00; ma->M01 = m01;ma->M10=m10; ma->M11=m11;
+}
 
+void
+Print_Mat_2X2(MATRIX2X2_PTR ma, char *name) {
+    // prints out a 3x3 matrix
+    Write_Error("\n%s=\n",name);
+    
+    for (int r=0; r < 2; r++, Write_Error("\n"))
+        for (int c=0; c < 2; c++)
+            Write_Error("%f ",ma->M[r][c]);
+}
 
-
-
-
+/**
+ *  computers the determinate of a 2X2 matrix
+ *
+ *  @param m <#m description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+Mat_Det_2X2(MATRIX2X2_PTR m) {
+    return (m->M00 * m->M11 - m->M01 * m->M10);
+}
+/**
+ *  this functions adds two 2X2 matrices together and stores the result in msum
+ *
+ *  @param ma   <#ma description#>
+ *  @param mb   <#mb description#>
+ *  @param msum <#msum description#>
+ */
+void
+Mat_Add_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR msum) {
+    msum->M00 = ma->M00 + mb->M00;
+    msum->M01 = ma->M01 + mb->M01;
+    msum->M10 = ma->M10+mb->M10;
+    msum->M11 = ma->M11+mb->M11;
+}
+/**
+ *  this function multiplies two 2X2 matrices together and stores the result in mprod
+ *
+ *  @param ma    <#ma description#>
+ *  @param mb    <#mb description#>
+ *  @param mprod <#mprod description#>
+ */
+void
+Mat_Mul_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR mprod) {
+    mprod->M00 = ma->M00*mb->M00 + ma->M01*mb->M10;
+    mprod->M01 = ma->M00*mb->M01 + ma->M01*mb->M11;
+    
+    mprod->M10 = ma->M10*mb->M00 + ma->M11*mb->M10;
+    mprod->M11 = ma->M10*mb->M01 + ma->M11*mb->M11;
+}
+/**
+ *  this function computers the inverse of a 2x2 matrix and stores the result in mi
+ *
+ *  @param ma <#ma description#>
+ *  @param mi <#mi description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi) {
+    // compute determinate
+    float det = (ma->M00*ma->M11 - ma->M01*ma->M10);
+    
+    // if determinate is 0 then inverse doesn't exist
+    if (fabs(det) < EPSILON_E5) return 0;
+    
+    float det_inv = 1.0/det;
+    // fill in inverse by formula
+    mi->M00 =  ma->M11*det_inv;
+    mi->M01 = -ma->M01*det_inv;
+    mi->M10 = -ma->M10*det_inv;
+    mi->M11 =  ma->M00*det_inv;
+    // return sucess
+    return 1;
+}
+/**
+ *  solves the system AX=B and computes X=A(-1)*B
+ *  by using cramers rule and determinates
+ *  @param A <#A description#>
+ *  @param X <#X description#>
+ *  @param B <#B description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B) {
+    // step 1: compute determinate of A
+    float det_A = Mat_Det_2X2(A);
+    
+    // test if det(a) is zero, if so then there is no solution
+    if (fabs(det_A) < EPSILON_E5)
+        return(0);
+    
+    // step 2: create x,y numerator matrices by taking A and
+    // replacing each column of it with B(transpose) and solve
+    MATRIX2X2 work_mat; // working matrix
+    
+    // solve for x /////////////////
+    
+    // copy A into working matrix
+    MAT_COPY_2X2(A, &work_mat);
+    
+    // swap out column 0 (x column)
+    MAT_COLUMN_SWAP_2X2(&work_mat, 0, B);
+    
+    // compute determinate of A with B swapped into x column
+    float det_ABx = Mat_Det_2X2(&work_mat);
+    
+    // now solve for X00
+    X->M00 = det_ABx/det_A;
+    
+    // solve for y /////////////////
+    
+    // copy A into working matrix
+    MAT_COPY_2X2(A, &work_mat);
+    
+    // swap out column 1 (y column)
+    MAT_COLUMN_SWAP_2X2(&work_mat, 1, B);
+    
+    // compute determinate of A with B swapped into y column
+    float det_ABy = Mat_Det_2X2(&work_mat);
+    
+    // now solve for X01
+    X->M01 = det_ABy/det_A;
+    
+    // return success
+    return 1;
+}
 
 
 

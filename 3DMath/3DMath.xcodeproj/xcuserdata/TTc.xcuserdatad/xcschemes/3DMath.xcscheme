@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "794944701B44DC3C009C924A"
-               BuildableName = "3DMathLib"
-               BlueprintName = "3DMathLib"
-               ReferencedContainer = "container:3DMathLib.xcodeproj">
+               BlueprintIdentifier = "79A778351B4A18BE0071E4F3"
+               BuildableName = "3DMath"
+               BlueprintName = "3DMath"
+               ReferencedContainer = "container:3DMath.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "794944701B44DC3C009C924A"
-            BuildableName = "3DMathLib"
-            BlueprintName = "3DMathLib"
-            ReferencedContainer = "container:3DMathLib.xcodeproj">
+            BlueprintIdentifier = "79A778351B4A18BE0071E4F3"
+            BuildableName = "3DMath"
+            BlueprintName = "3DMath"
+            ReferencedContainer = "container:3DMath.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </TestAction>
@@ -52,10 +52,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "794944701B44DC3C009C924A"
-            BuildableName = "3DMathLib"
-            BlueprintName = "3DMathLib"
-            ReferencedContainer = "container:3DMathLib.xcodeproj">
+            BlueprintIdentifier = "79A778351B4A18BE0071E4F3"
+            BuildableName = "3DMath"
+            BlueprintName = "3DMath"
+            ReferencedContainer = "container:3DMath.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -71,10 +71,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "794944701B44DC3C009C924A"
-            BuildableName = "3DMathLib"
-            BlueprintName = "3DMathLib"
-            ReferencedContainer = "container:3DMathLib.xcodeproj">
+            BlueprintIdentifier = "79A778351B4A18BE0071E4F3"
+            BuildableName = "3DMath"
+            BlueprintName = "3DMath"
+            ReferencedContainer = "container:3DMath.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

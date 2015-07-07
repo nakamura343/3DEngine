@@ -783,31 +783,31 @@ float Mat_Det_3X3(MATRIX3X3_PTR m);
 int Solve_3X3_System(MATRIX3X3_PTR A, MATRIX1X3_PTR X, MATRIX1X3_PTR B);
 
 //4x4 matrix functions
-//ma + mb
+//ma + mb 将俩个矩阵相加,并将结果存储懂msum
 void Mat_Add_4X4(MATRIX4X4_PTR ma,MATRIX4X4_PTR mb,MATRIX4X4_PTR msum);
-//ma * mb
+//ma * mb 将俩矩阵相乘,并将结果存储在mprod
 void Mat_Mul_4X4(MATRIX4X4_PTR ma,MATRIX4X4_PTR mb,MATRIX4X4_PTR mprod);
-
+//将一个1X4的行向量(4D点)于一个4x4矩阵相乘
 void Mat_Mul_1X4_4X4(MATRIX1X4_PTR ma,MATRIX4X4_PTR mb,MATRIX1X4_PTR mprod);
-    
+//将一个3d向量(1X3矩阵)与一个4x4矩阵相乘
 void Mat_Mul_VECTOR3D_4X4(VECTOR3D_PTR va,MATRIX4X4_PTR mb, VECTOR3D_PTR mprod);
-
+//将一个3d向量(1X3矩阵)与一个4x3矩阵相乘 (假设向量va中存在第四个元素=1.0)
 void Mat_Mul_VECTOR3D_4X3(VECTOR3D_PTR  va,MATRIX4X3_PTR mb,VECTOR3D_PTR  vprod);
-
+//将一个4d向量(1X4矩阵)与一个4x4矩阵相乘
 void Mat_Mul_VECTOR4D_4X4(VECTOR4D_PTR  va,MATRIX4X4_PTR mb,VECTOR4D_PTR  vprod);
 
 void Mat_Mul_VECTOR4D_4X3(VECTOR4D_PTR  va,MATRIX4X4_PTR mb,VECTOR4D_PTR  vprod);
-
+//使用传入的浮点值以先行后列的次序初始化矩阵ma.
 void Mat_Init_4X4(MATRIX4X4_PTR ma,
                   float m00, float m01, float m02, float m03,
                   float m10, float m11, float m12, float m13,
                   float m20, float m21, float m22, float m23,
                   float m30, float m31, float m32, float m33);
-
+//计算矩阵m的逆矩阵(如果存在的情况),若存在逆矩阵则返回1,否则返回0
 int Mat_Inverse_4X4(MATRIX4X4_PTR m, MATRIX4X4_PTR mi);
 
 
-
+//
 
 
 

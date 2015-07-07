@@ -1777,11 +1777,268 @@ QUAT_To_VECTOR3D_Theta(QUAT_PTR q, VECTOR3D_PTR v, float *theta) {
 }
 /******************************************************************************/
 
+//2D参数化直线函数
+/** 根据指定的点计算它们之间的向量,并初始化一条2D参数化直线,note:该向量是在函数内部生成
+ *  this initializes a parametric 2d line
+ *  note that the function computes v=p_pend - p_init, thus when t=0 the line p=p0+v*t = p0
+ *  and whne t=1, p=p1, this way the segement is traced out from p0 to p1 via 0<= t <= 1
+ */
+void
+Init_Parm_Line2D(POINT2D_PTR p_init,POINT2D_PTR p_term,PARMLINE2D_PTR p) {
+    // start point
+    VECTOR2D_INIT(&(p->p0), p_init);
+    // end point
+    VECTOR2D_INIT(&(p->p1), p_term);
+    // now compute direction vector from p0->p1
+    VECTOR2D_Build(p_init, p_term, &(p->v));
+}
+
+/**  计算2D参数化直线在参数t处的值,并将其返回到指定的点中 ;当t＝0,结果为起点p1,当t=1,结果为终点p2,也就是说当t从0变化到1,将从p1移动到p2.
+ *  this function computers the value of the sent parametric line at the value of t
+ *
+ *  @param p  <#p description#>
+ *  @param t  <#t description#>
+ *  @param pt <#pt description#>
+ */
+void
+Compute_Parm_Line2D(PARMLINE2D_PTR p, float t, POINT2D_PTR pt) {
+    pt->x = p->p0.x + p->v.x*t;
+    pt->y = p->p0.y + p->v.y*t;
+}
+/** waring:该函数不检测两条直线是否共线,因为这将极大地降低速度,同时有太多的情况(部分重叠,包含,只有一点重叠等情况)。
+ *  这个函数计算两条参数化线段的交点,并将t1和t2分别设置交点在p1和p2上对应的t值
+ *  然而t值可能不在范围[0,1] 内,这意味着线段本身没有相交,但它们对应的直线是相交的
+ *  函数返回0表示没有相交,返回1表示交点在线段上 ;2代表相交,但交点不在线段上,3代表两条线段位于同一直线上
+ */
+int
+Intersect_Parm_Lines2D(PARMLINE2D_PTR p1, PARMLINE2D_PTR p2,
+                           float *t1, float *t2) {
+    
+    // step 1: 检测它们是否平行
+    // 如果一个方向向量是另一个向量与一个标量的乘积,则说明两条线段平行
+    // 除非它们重叠,否则不可能相交
+    float det_p1p2 = (p1->v.x*p2->v.y - p1->v.y*p2->v.x);
+    if (fabs(det_p1p2) <= EPSILON_E5){
+        //这表明两条线段要么根本不相交,要么位于同一条直线上
+        //在后一种情况下,可能有一个或多个交点
+        //现在暂时假设它们不相交,以后需要时再重编写该函数,以考虑重叠的情况
+        return(PARM_LINE_NO_INTERSECT);
+    }
+    // step 2: 计算t1和t2的值;我们有两条以下述方式表示的线段
+    // p    = p0    +  v*t, specifically
+    // p1   = p10   + v1*t1
+    // p1.x = p10.x + v1.x*t1
+    // p1.y = p10.y + v1.y*t1
+    
+    // p2 = p20 + v2*t2
+    // p2   = p20   + v2*t2
+    // p2.x = p20.x + v2.x*t2
+    // p2.y = p20.y + v2.y*t2
+    // solve the system when x1 = x2 and y1 = y2
+    // 计算交点
+    *t1 = (p2->v.x*(p1->p0.y - p2->p0.y) - p2->v.y*(p1->p0.x - p2->p0.x)) /det_p1p2;
+    *t2 = (p1->v.x*(p1->p0.y - p2->p0.y) - p1->v.y*(p1->p0.x - p2->p0.x)) /det_p1p2;
+    // 检测交点是否在线段上
+    if ((*t1>=0) && (*t1<=1) && (*t2>=0) && (*t2<=1))
+        return(PARM_LINE_INTERSECT_IN_SEGMENT);
+    else
+        return(PARM_LINE_INTERSECT_OUT_SEGMENT);
+}
+
+int
+Intersect_Parm_Lines2D(PARMLINE2D_PTR p1, PARMLINE2D_PTR p2, POINT2D_PTR pt) {
+    float t1, t2, det_p1p2 = (p1->v.x*p2->v.y - p1->v.y*p2->v.x);
+    if (fabs(det_p1p2) <= EPSILON_E5) return(PARM_LINE_NO_INTERSECT);
+    t1 = (p2->v.x*(p1->p0.y - p2->p0.y) - p2->v.y*(p1->p0.x - p2->p0.x))/det_p1p2;
+    t2 = (p1->v.x*(p1->p0.y - p2->p0.y) - p1->v.y*(p1->p0.x - p2->p0.x)) /det_p1p2;
+    pt->x = p1->p0.x + p1->v.x*t1;
+    pt->y = p1->p0.y + p1->v.y*t1;
+    if ((t1>=0) && (t1<=1) && (t2>=0) && (t2<=1))
+        return(PARM_LINE_INTERSECT_IN_SEGMENT);
+    else
+        return(PARM_LINE_INTERSECT_OUT_SEGMENT);
+}
+/******************************************************************************/
 
 
-
+/** 根据指定的点以及它们之间的向量,初始化一个3D参数化直线结构,在函数内部生成
+ *  this initializes a parametric 3d line
+ *  note that the function computes v=p_pend - p_init, thus when t=0 the line p=p0+v*t = p0
+ *  and whne t=1, p=p1, this way the segement is traced out from p0 to p1 via 0<= t <= 1
+ */
+void
+Init_Parm_Line3D(POINT3D_PTR p_init,POINT3D_PTR p_term, PARMLINE3D_PTR p) {
+    // start point
+    VECTOR3D_INIT(&(p->p0), p_init);
+    // end point
+    VECTOR3D_INIT(&(p->p1),p_term);
+    // now compute direction vector from p0->p1
+    VECTOR3D_Build(p_init, p_term, &(p->v));
+}
+/** 计算一条参数化直线在参数t处的值,并将返回结果存储在指定的中.
+ *  this function computers the value of the sent parametric line at the value of t
+ *
+ *  @param p  <#p description#>
+ *  @param t  <#t description#>
+ *  @param pt <#pt description#>
+ */
+void
+Compute_Parm_Line3D(PARMLINE3D_PTR p, float t, POINT3D_PTR pt) {
+    pt->x = p->p0.x + p->v.x*t;
+    pt->y = p->p0.y + p->v.y*t;
+    pt->z = p->p0.z + p->v.z*t;
+}
 
 /******************************************************************************/
+
+//3D平面函数
+/** 使用指定的点和法线来初始化一个3D平面,另外,该函数可以对指定的法线进行归一化,使其长度为1.0
+ *  要进行归一化,需要将normalize参数设置为True;否则,将它设置为FALSE.在很多光照和背面消除计算中.
+ *  知道多边形或平面的法线长度为1.0会很有帮助.
+ *  this function initializes a 3d plane
+ *
+ *  @param plane     <#plane description#>
+ *  @param p0        <#p0 description#>
+ *  @param normal    <#normal description#>
+ *  @param normalize <#normalize description#>
+ */
+void
+PLANE3D_Init(PLANE3D_PTR plane, POINT3D_PTR p0,VECTOR3D_PTR normal, int normalize) {
+    // copy the point
+    POINT3D_COPY(&plane->p0, p0);
+    // if normalize is 1 then the normal is made into a unit vector
+    if (!normalize)  VECTOR3D_COPY(&plane->n, normal);
+    else  VECTOR3D_Normalize(normal,&plane->n);  // make normal into unit vector
+}
+/**  它判断指定点位于哪一个半空间,很多时候,需要判断某样东西位于平面的哪一边,该函数提供了这种功能。
+ *   若指定点位于平面上返回0;   若位于正半空间中,返回一个正数;   若位于负半空间中,返回一个正数;
+ *
+ *  @param pt    <#pt description#>
+ *  @param plane <#plane description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+Compute_Point_In_Plane3D(POINT3D_PTR pt, PLANE3D_PTR plane) {
+    //检测点是在平面上 还是 正半空间 还是 负半空间
+    //test if the point in on the plane, in the positive halfspace or negative halfspace
+    float hs = plane->n.x*(pt->x - plane->p0.x) +
+               plane->n.y*(pt->y - plane->p0.y) +
+               plane->n.z*(pt->z - plane->p0.z);
+    return hs;
+}
+
+
+/** 函数计算一条3D参数化直线与一个3D平面的交点,将交点处的参数值存储到 t中,并将交点存储到pt中。
+ *  然而在使用这些数据之前,需要测试函数的返回值,以确定是否存在交点。
+ *
+ *  这个函数计算参数化直线与平面的交点
+ *  计算交点时,该函数将参数化直线视为无穷长
+ *  如果交点在线段pline上,则参数t的值将位于范围[0,1]内,
+ *  另外,如果不相交,该函数返回0,如果交点在线段上,返回1
+ *  如果返回交点不在线段上,返回2 ; 如果线段位于平面上,返回 3
+ */
+int
+Intersect_Parm_Line3D_Plane3D(PARMLINE3D_PTR pline,PLANE3D_PTR plane,
+                              float *t, POINT3D_PTR pt) {
+    // 首先判断线段和平面是否平行
+    // 若是,则它们不可能相交,除非线段位于平面上!
+    float plane_dot_line = VECTOR3D_Dot(&pline->v, &plane->n);
+    
+    if (fabs(plane_dot_line) <= EPSILON_E5) {
+        //线段与平面平行 ,它是否在平面上？
+        if (fabs(Compute_Point_In_Plane3D(&pline->p0, plane)) <= EPSILON_E5)
+            return(PARM_LINE_INTERSECT_EVERYWHERE);
+        else
+            return(PARM_LINE_NO_INTERSECT);
+    }
+    
+    *t = -(plane->n.x*pline->p0.x +
+           plane->n.y*pline->p0.y +
+           plane->n.z*pline->p0.z -
+           plane->n.x*plane->p0.x -
+           plane->n.y*plane->p0.y -
+           plane->n.z*plane->p0.z) / (plane_dot_line);
+    // now plug t into the parametric line and solve for x,y,z
+    pt->x = pline->p0.x + pline->v.x*(*t);
+    pt->y = pline->p0.y + pline->v.y*(*t);
+    pt->z = pline->p0.z + pline->v.z*(*t);
+    // test interval of t [0,1]
+    if (*t>=0.0 && *t<=1.0)
+        return(PARM_LINE_INTERSECT_IN_SEGMENT );
+    else
+        return(PARM_LINE_INTERSECT_OUT_SEGMENT);
+}
+/******************************************************************************/
+
+//定点数函数
+/**
+ *  this function computes the product fp_prod = fp1*fp2
+ *  using 64 bit math, so as not to loose precission
+ *  @param fp1 <#fp1 description#>
+ *  @param fp2 <#fp2 description#>
+ *
+ *  @return <#return value description#>
+ */
+/*
+FIXP16
+FIXP16_MUL(FIXP16 fp1,FIXP16 fp2) {
+    FIXP16 fp_prod; // return the product
+    
+    _asm {
+        mov eax, fp1      // move into eax fp2
+        imul fp2          // multiply fp1*fp2
+        shrd eax, edx, 16 // result is in 32:32 format
+                          // residing at edx:eax
+                          // shift it into eax alone 16:16
+                          // result is sitting in eax
+    }
+   
+}
+ */
+/**
+ *  this function computes the quotient fp1/fp2 using
+ *  64 bit math, so as not to loose precision
+ *  @param fp1 <#fp1 description#>
+ *  @param fp2 <#fp2 description#>
+ *
+ *  @return <#return value description#>
+ */
+/*
+FIXP16
+FIXP16_DIV(FIXP16 fp1,FIXP16 fp2) {
+    _asm {
+        mov eax, fp1      // move dividend into eax
+        cdq               // sign extend it to edx:eax
+        shld edx, eax, 16 // now shift 16:16 into position in edx
+        sal eax, 16       // and shift eax into position since the
+                          // shld didn't move it -- DUMB! uPC
+        idiv fp2          // do the divide
+                          // result is sitting in eax
+    }
+}
+ */
+
+/******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

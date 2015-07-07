@@ -40,10 +40,10 @@
 #define EPSILON_E6          (float)(1E-6)
 
 //用于参数化直线交点的常量
-#define PARM_LINE_NO_INTERSECT              0
-#define PARM_LINE_INTERSECT_IN_SEGMENT      1
-#define PARM_LINE_INTERSECT_OUT_SEGMENT     2
-#define PARM_LINE_INTERSECT_EVERYWHERE      3
+#define PARM_LINE_NO_INTERSECT              0 //不相交
+#define PARM_LINE_INTERSECT_IN_SEGMENT      1 //交点在线段上
+#define PARM_LINE_INTERSECT_OUT_SEGMENT     2 //交点不在线段上
+#define PARM_LINE_INTERSECT_EVERYWHERE      3 //代表 点位于平面内
 
 /******************************************************************************/
 /******************************************************************************/
@@ -95,12 +95,12 @@ typedef struct PARMLINE2D_TYP {  // |v| = |p0->p1 |
 
 
 //3D parametric line
-typedef struct PARMLINE3d_TYP {
+typedef struct PARMLINE3D_TYP {
     POINT3D     p0;
     POINT3D     p1;
     VECTOR3D    v;
     
-}PARMLINE3d_TYP, *PARMLINE3d_PTR;
+}PARMLINE3D, *PARMLINE3D_PTR;
 
 
 /******************************************************************************/
@@ -847,20 +847,42 @@ void EulerZYX_To_QUAT(QUAT_PTR q, float theta_z, float theta_y, float theta_x);
 
 void QUAT_To_VECTOR3D_Theta(QUAT_PTR q, VECTOR3D_PTR v, float *theta);
 
+/******************************************************************************/
 
+//2D参数化直线函数
+void Init_Parm_Line2D(POINT2D_PTR p_init,POINT2D_PTR p_term,PARMLINE2D_PTR p);
 
+void Compute_Parm_Line2D(PARMLINE2D_PTR p, float t, POINT2D_PTR pt);
 
+int Intersect_Parm_Lines2D(PARMLINE2D_PTR p1, PARMLINE2D_PTR p2,
+                           float *t1, float *t2);
 
-
-
-
-
-
-
-
+int Intersect_Parm_Lines2D(PARMLINE2D_PTR p1, PARMLINE2D_PTR p2, POINT2D_PTR pt);
 
 /******************************************************************************/
+
+//3D参数化直线函数
+void Init_Parm_Line3D(POINT3D_PTR p_init,POINT3D_PTR p_term, PARMLINE3D_PTR p);
+
+void Compute_Parm_Line3D(PARMLINE3D_PTR p, float t, POINT3D_PTR pt);
+
 /******************************************************************************/
+
+//3D平面函数
+void PLANE3D_Init(PLANE3D_PTR plane, POINT3D_PTR p0,VECTOR3D_PTR normal, int normalize);
+
+float Compute_Point_In_Plane3D(POINT3D_PTR pt, PLANE3D_PTR plane);
+
+int Intersect_Parm_Line3D_Plane3D(PARMLINE3D_PTR pline,PLANE3D_PTR plane,
+                                  float *t, POINT3D_PTR pt);
+
+/******************************************************************************/
+//定点数函数
+FIXP16 FIXP16_MUL(FIXP16 fp1,FIXP16 fp2);
+
+FIXP16 FIXP16_DIV(FIXP16 fp1,FIXP16 fp2);
+
+
 /******************************************************************************/
 
 

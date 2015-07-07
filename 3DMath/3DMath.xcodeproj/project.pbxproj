@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		79A7783A1B4A18BE0071E4F3 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79A778391B4A18BE0071E4F3 /* main.cpp */; };
-		79A778441B4A18F40071E4F3 /* T3DLib4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79A778411B4A18F40071E4F3 /* T3DLib4.cpp */; };
-		79A778471B4A1CAA0071E4F3 /* T3DLib1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79A778451B4A1CAA0071E4F3 /* T3DLib1.cpp */; };
+		793BE5D91B4A53CB002227B8 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5D31B4A53CB002227B8 /* main.cpp */; };
+		793BE5DA1B4A53CB002227B8 /* T3DLib1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5D41B4A53CB002227B8 /* T3DLib1.cpp */; };
+		793BE5DB1B4A53CB002227B8 /* T3DLib4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5D61B4A53CB002227B8 /* T3DLib4.cpp */; };
+		793BE5DE1B4A5440002227B8 /* test_mathlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5DC1B4A5440002227B8 /* test_mathlib.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,12 +26,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		793BE5D31B4A53CB002227B8 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		793BE5D41B4A53CB002227B8 /* T3DLib1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = T3DLib1.cpp; sourceTree = "<group>"; };
+		793BE5D51B4A53CB002227B8 /* T3DLib1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = T3DLib1.h; sourceTree = "<group>"; };
+		793BE5D61B4A53CB002227B8 /* T3DLib4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = T3DLib4.cpp; sourceTree = "<group>"; };
+		793BE5D71B4A53CB002227B8 /* T3DLib4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = T3DLib4.h; sourceTree = "<group>"; };
+		793BE5DC1B4A5440002227B8 /* test_mathlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_mathlib.cpp; sourceTree = "<group>"; };
+		793BE5DD1B4A5440002227B8 /* test_mathlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_mathlib.h; sourceTree = "<group>"; };
 		79A778361B4A18BE0071E4F3 /* 3DMath */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 3DMath; sourceTree = BUILT_PRODUCTS_DIR; };
-		79A778391B4A18BE0071E4F3 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		79A778411B4A18F40071E4F3 /* T3DLib4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = T3DLib4.cpp; sourceTree = "<group>"; };
-		79A778421B4A18F40071E4F3 /* T3DLib4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = T3DLib4.h; sourceTree = "<group>"; };
-		79A778451B4A1CAA0071E4F3 /* T3DLib1.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = T3DLib1.cpp; sourceTree = "<group>"; };
-		79A778461B4A1CAA0071E4F3 /* T3DLib1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = T3DLib1.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +47,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		793BE5D01B4A53B0002227B8 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				793BE5DC1B4A5440002227B8 /* test_mathlib.cpp */,
+				793BE5DD1B4A5440002227B8 /* test_mathlib.h */,
+			);
+			path = test;
+			sourceTree = "<group>";
+		};
+		793BE5D11B4A53CB002227B8 /* source */ = {
+			isa = PBXGroup;
+			children = (
+				793BE5D31B4A53CB002227B8 /* main.cpp */,
+				793BE5D41B4A53CB002227B8 /* T3DLib1.cpp */,
+				793BE5D51B4A53CB002227B8 /* T3DLib1.h */,
+				793BE5D61B4A53CB002227B8 /* T3DLib4.cpp */,
+				793BE5D71B4A53CB002227B8 /* T3DLib4.h */,
+			);
+			path = source;
+			sourceTree = "<group>";
+		};
 		79A7782D1B4A18BE0071E4F3 = {
 			isa = PBXGroup;
 			children = (
@@ -63,11 +87,8 @@
 		79A778381B4A18BE0071E4F3 /* 3DMath */ = {
 			isa = PBXGroup;
 			children = (
-				79A778411B4A18F40071E4F3 /* T3DLib4.cpp */,
-				79A778421B4A18F40071E4F3 /* T3DLib4.h */,
-				79A778391B4A18BE0071E4F3 /* main.cpp */,
-				79A778451B4A1CAA0071E4F3 /* T3DLib1.cpp */,
-				79A778461B4A1CAA0071E4F3 /* T3DLib1.h */,
+				793BE5D11B4A53CB002227B8 /* source */,
+				793BE5D01B4A53B0002227B8 /* test */,
 			);
 			path = 3DMath;
 			sourceTree = "<group>";
@@ -128,9 +149,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				79A778471B4A1CAA0071E4F3 /* T3DLib1.cpp in Sources */,
-				79A778441B4A18F40071E4F3 /* T3DLib4.cpp in Sources */,
-				79A7783A1B4A18BE0071E4F3 /* main.cpp in Sources */,
+				793BE5DA1B4A53CB002227B8 /* T3DLib1.cpp in Sources */,
+				793BE5DE1B4A5440002227B8 /* test_mathlib.cpp in Sources */,
+				793BE5D91B4A53CB002227B8 /* main.cpp in Sources */,
+				793BE5DB1B4A53CB002227B8 /* T3DLib4.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -247,6 +269,7 @@
 				79A7783F1B4A18BE0071E4F3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

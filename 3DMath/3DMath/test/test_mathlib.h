@@ -19,4 +19,7 @@ void test_MATRIX3X3();
 
 void test_Fast_sin();
 void test_Fast_cos();
+
+
+
 #endif /* defined(___DMath__test_mathlib__) */

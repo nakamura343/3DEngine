@@ -2,7 +2,7 @@
 //  T3DLib.c
 //  3DMathLib
 //
-//  Created by TTc on 15/7/2.
+//  Created by TTc on 15/3/7.
 //  Copyright (c) 2015年 TTc. All rights reserved.
 //
 

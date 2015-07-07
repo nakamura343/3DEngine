@@ -757,7 +757,7 @@ int Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi);
 int Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B);
 
 
-//3X3 matrix functions (note there in T3DLib1.h|cpp)
+//3X3 matrix functions
 int MAT_Mul_1X2_3X2(MATRIX1X2_PTR ma, MATRIX3X2_PTR mb,MATRIX1X2_PTR mprod);
 
 int Mat_Mul_1X3_3X3(MATRIX1X3_PTR ma, MATRIX3X3_PTR mb,MATRIX1X3_PTR mprod);
@@ -782,19 +782,29 @@ float Mat_Det_3X3(MATRIX3X3_PTR m);
 
 int Solve_3X3_System(MATRIX3X3_PTR A, MATRIX1X3_PTR X, MATRIX1X3_PTR B);
 
+//4x4 matrix functions
+//ma + mb
+void Mat_Add_4X4(MATRIX4X4_PTR ma,MATRIX4X4_PTR mb,MATRIX4X4_PTR msum);
+//ma * mb
+void Mat_Mul_4X4(MATRIX4X4_PTR ma,MATRIX4X4_PTR mb,MATRIX4X4_PTR mprod);
 
+void Mat_Mul_1X4_4X4(MATRIX1X4_PTR ma,MATRIX4X4_PTR mb,MATRIX1X4_PTR mprod);
+    
+void Mat_Mul_VECTOR3D_4X4(VECTOR3D_PTR va,MATRIX4X4_PTR mb, VECTOR3D_PTR mprod);
 
+void Mat_Mul_VECTOR3D_4X3(VECTOR3D_PTR  va,MATRIX4X3_PTR mb,VECTOR3D_PTR  vprod);
 
+void Mat_Mul_VECTOR4D_4X4(VECTOR4D_PTR  va,MATRIX4X4_PTR mb,VECTOR4D_PTR  vprod);
 
+void Mat_Mul_VECTOR4D_4X3(VECTOR4D_PTR  va,MATRIX4X4_PTR mb,VECTOR4D_PTR  vprod);
 
+void Mat_Init_4X4(MATRIX4X4_PTR ma,
+                  float m00, float m01, float m02, float m03,
+                  float m10, float m11, float m12, float m13,
+                  float m20, float m21, float m22, float m23,
+                  float m30, float m31, float m32, float m33);
 
-
-
-
-
-
-
-
+int Mat_Inverse_4X4(MATRIX4X4_PTR m, MATRIX4X4_PTR mi);
 
 
 

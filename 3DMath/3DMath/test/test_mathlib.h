@@ -18,8 +18,23 @@
 void test_MATRIX3X3();
 
 void test_Fast_sin();
+
 void test_Fast_cos();
 
 
+void test_Init_Parm_Line2d();
 
+void test_Compute_Parm_Line2D();
+
+void test_Intersect_Parm_Lines2D();
+
+void test_Init_Parm_Line3D();
+
+void test_Compute_Parm_Line3D();
+
+void test_PLANE3D_Init();
+
+void test_Compute_Point_In_Plane3D();
+
+void test_Intersect_Parm_Line3D_Plane3D();
 #endif /* defined(___DMath__test_mathlib__) */

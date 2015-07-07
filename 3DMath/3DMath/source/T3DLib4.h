@@ -757,8 +757,30 @@ int Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi);
 int Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B);
 
 
+//3X3 matrix functions (note there in T3DLib1.h|cpp)
+int MAT_Mul_1X2_3X2(MATRIX1X2_PTR ma, MATRIX3X2_PTR mb,MATRIX1X2_PTR mprod);
+
+int Mat_Mul_1X3_3X3(MATRIX1X3_PTR ma, MATRIX3X3_PTR mb,MATRIX1X3_PTR mprod);
+
+int Mat_Mul_3X3(MATRIX3X3_PTR ma,MATRIX3X3_PTR mb,MATRIX3X3_PTR mprod);
 
 
+inline int Mat_Init_3X2(MATRIX3X2_PTR ma,float m00, float m01,float m10, float m11,
+                        float m20, float m21);
+
+
+void Mat_Add_3X3(MATRIX3X3_PTR ma, MATRIX3X3_PTR mb, MATRIX3X3_PTR msum);
+
+void Mat_Mul_VECTOR3D_3X3(VECTOR3D_PTR  va, MATRIX3X3_PTR mb,VECTOR3D_PTR  vprod);
+
+void Mat_Init_3X3(MATRIX3X3_PTR ma,float m00, float m01, float m02,float m10, float m11, float m12,
+                  float m20, float m21, float m22);
+
+int Mat_Inverse_3X3(MATRIX3X3_PTR m, MATRIX3X3_PTR mi);
+
+float Mat_Det_3X3(MATRIX3X3_PTR m);
+
+int Solve_3X3_System(MATRIX3X3_PTR A, MATRIX1X3_PTR X, MATRIX1X3_PTR B);
 
 
 

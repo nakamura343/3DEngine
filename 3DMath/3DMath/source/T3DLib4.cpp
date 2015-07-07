@@ -861,7 +861,7 @@ Print_Mat_2X2(MATRIX2X2_PTR ma, char *name) {
             Write_Error("%f ",ma->M[r][c]);
 }
 
-/**
+/** 用于计算矩阵m的行列式,并将结果返回到堆栈
  *  computers the determinate of a 2X2 matrix
  *
  *  @param m <#m description#>
@@ -901,7 +901,7 @@ Mat_Mul_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR mprod) {
     mprod->M10 = ma->M10*mb->M00 + ma->M11*mb->M10;
     mprod->M11 = ma->M10*mb->M01 + ma->M11*mb->M11;
 }
-/**
+/** 用于计算矩阵m的逆矩阵(如果有的情况),并将结果存储在mi中,若逆矩阵存在则返回1,否则返回0且mi为定义
  *  this function computers the inverse of a 2x2 matrix and stores the result in mi
  *
  *  @param ma <#ma description#>
@@ -979,6 +979,287 @@ Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B) {
     // return success
     return 1;
 }
+/******************************************************************************/
+
+
+//3X3 matrix functions
+/** 将一个1X2矩阵(实质就是一个2D点)与一个3X3矩阵(表示旋转或平移)相乘.这种运算在数学上时未定义的,
+ * 因为他们的内纬不相同,然而,如果假设1X2实际是1X3矩阵,其最后一个元素为1,将可以执行这种乘法,
+ *  这个函数对2D点进行变换时 非常有用。
+ *  waring:这个函数速度很慢,可以消除循环来加速.但现在更清晰,必要时可以优化，对代码优化之前应该
+ * 先对算法进行优化。有了最优的算法和代码后,可以有内联汇编
+ *  this function mutiplies a 1X2 matrix against a 3X2 matrix - ma*mb and stores the
+ *  result using a dummy element for the 3rd element of the 1X2 to make the matrix
+ *  multiply vaild . 1X3 X 3X2
+ *  @param ma    <#ma description#>
+ *  @param mb    <#mb description#>
+ *  @param mprod <#mprod description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+MAT_Mul_1X2_3X2(MATRIX1X2_PTR ma, MATRIX3X2_PTR mb,MATRIX1X2_PTR mprod) {
+    for (int col = 0; col < 2; col++) {
+        //computer dot product from row of ma  and  column of mb
+        float sum =0;//used to hold result
+        int index;
+        for (index = 0; index < 2; index++) {
+            // add in next product pair
+            sum+=(ma->M[index]*mb->M[index][col]);
+        }
+        //add in last element * 1
+        sum += mb->M[index][col];
+        
+        //insert resulting col  element
+        mprod->M[col] = sum;
+    }
+    return 1;
+}
+/** 将一个1x3矩阵(实质是一个行向量)与一个3x3矩阵相乘.等价于Mat_Mul_VECTOR3D_3X3(),只是类型不同
+ *  this function multiplies a 1X3 matrix against a 3X3 matrix - ma*mb and stores
+ *   the result
+ *  @param ma    <#ma description#>
+ *  @param mb    <#mb description#>
+ *  @param mprod <#mprod description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+Mat_Mul_1X3_3X3(MATRIX1X3_PTR ma, MATRIX3X3_PTR mb,MATRIX1X3_PTR mprod) {
+    for (int col = 0; col < 3; col++) {
+        float sum = 0;// used to hold result
+        int index;
+        for (index = 0; index < 3 ; index++) {
+            sum += (ma->M[index]*mb->M[index][col]);
+        }
+        //insert resulting col element
+        mprod->M[col] =sum;
+    }
+    return 1;
+}
+/** 将两个矩阵相乘(ma * mb),并将结果存储到mprod中
+ *  this function multiplies two matrices together and stores the result
+ *
+ *  @param ma    <#ma description#>
+ *  @param mb    <#mb description#>
+ *  @param mprod <#mprod description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+Mat_Mul_3X3(MATRIX3X3_PTR ma,MATRIX3X3_PTR mb,MATRIX3X3_PTR mprod) {
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0 ; col < 3; col++) {
+            float sum = 0; //used to hold result
+            for (int index = 0; index < 3; index++) {
+                sum += (ma->M[row][index] *mb->M[index][col]);
+            }
+            //insert resulting row col element
+            mprod->M[row][col] =sum;
+        }
+    }
+    return 1;
+}
+
+/** 使用传入的浮点值以先行后列的次序 初始化矩阵ma
+ *  this function fills a  3X2 matrix with the sent data in row major form
+ *
+ *  @param ma  <#ma description#>
+ *  @param m00 <#m00 description#>
+ *  @param m01 <#m01 description#>
+ *  @param m10 <#m10 description#>
+ *  @param m11 <#m11 description#>
+ *  @param m20 <#m20 description#>
+ *  @param m21 <#m21 description#>
+ *
+ *  @return <#return value description#>
+ */
+inline int
+Mat_Init_3X2(MATRIX3X2_PTR ma,float m00, float m01,float m10, float m11,
+             float m20, float m21) {
+    ma->M[0][0] = m00;ma->M[0][1] = m01;ma->M[1][0]=m01;ma->M[1][1]=m11;
+    
+    return 1;
+}
+
+/** 将两个矩阵相加(ma＋mb),并将结果存储到msum中
+ *  this function adds two 3X3 matrices together and stores the result.
+ *
+ *  @param ma   <#ma description#>
+ *  @param mb   <#mb description#>
+ *  @param msum <#msum description#>
+ */
+void
+Mat_Add_3X3(MATRIX3X3_PTR ma, MATRIX3X3_PTR mb, MATRIX3X3_PTR msum) {
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0 ; col < 3; col++) {
+            msum->M[row][col] = ma->M[row][col] + mb->M[row][col];
+        }
+    }
+}
+/** 将1x3 的行向量(3d点) 与 3x3矩阵相乘,并将结果存储到1X3的行向量vprod (实质 执行点或向量 与矩阵的乘法)
+ *  this function multiplies a VECTOR3D against a 3X3 matrix - ma*mb and
+ *  stores the result in vprod
+ *  @param va    <#va description#>
+ *  @param mb    <#mb description#>
+ *  @param vprod <#vprod description#>
+ */
+void
+Mat_Mul_VECTOR3D_3X3(VECTOR3D_PTR  va, MATRIX3X3_PTR mb,VECTOR3D_PTR  vprod) {
+    for (int col = 0 ; col < 3; col++) {
+        float sum = 0;
+        for (int row = 0; row < 3; row++) {
+            sum+=(va->M[row]*mb->M[row][col]);
+        }
+        vprod->M[col] = sum;
+    }
+}
+/** 使用传入的浮点值以先行后列的次序 初始化矩阵ma
+ *  this function fills a 3x3 matrix with sent data in row major form
+ *
+ *  @param ma  <#ma description#>
+ *  @param m00 <#m00 description#>
+ *  @param m01 <#m01 description#>
+ *  @param m02 <#m02 description#>
+ *  @param m10 <#m10 description#>
+ *  @param m11 <#m11 description#>
+ *  @param m12 <#m12 description#>
+ *  @param m20 <#m20 description#>
+ *  @param m21 <#m21 description#>
+ *  @param m22 <#m22 description#>
+ */
+void
+Mat_Init_3X3(MATRIX3X3_PTR ma,float m00, float m01, float m02,float m10, float m11, float m12,
+             float m20, float m21, float m22) {
+    ma->M00 = m00; ma->M01 = m01; ma->M02 = m02;
+    ma->M10 = m10; ma->M11 = m11; ma->M12 = m12;
+    ma->M20 = m20; ma->M21 = m21; ma->M22 = m22;
+}
+
+
+/** 用于计算矩阵m的逆矩阵(如果有的情况),并将结果存储在mi中,若逆矩阵存在则返回1,否则返回0且mi为定义
+ *  this function computers the inverse of a 3x3
+  *
+ *  @param m  <#m description#>
+ *  @param mi <#mi description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+Mat_Inverse_3X3(MATRIX3X3_PTR m, MATRIX3X3_PTR mi) {
+    //first compute the determinate to see if there is an inverse
+    float det = m->M00*(m->M11*m->M22 - m->M21*m->M12) -
+    m->M01*(m->M10*m->M22 - m->M20*m->M12) +
+    m->M02*(m->M10*m->M21 - m->M20*m->M11);
+    
+    if (fabs(det) < EPSILON_E5)
+        return(0);
+    
+    // compute inverse to save divides
+    float det_inv = 1.0/det;
+    
+    // compute inverse using m-1 = adjoint(m)/det(m)
+    mi->M00 =  det_inv*(m->M11*m->M22 - m->M21*m->M12);
+    mi->M10 = -det_inv*(m->M10*m->M22 - m->M20*m->M12);
+    mi->M20 =  det_inv*(m->M10*m->M21 - m->M20*m->M11);
+    
+    mi->M01 = -det_inv*(m->M01*m->M22 - m->M21*m->M02);
+    mi->M11 =  det_inv*(m->M00*m->M22 - m->M20*m->M02);
+    mi->M21 = -det_inv*(m->M00*m->M21 - m->M20*m->M01);
+    
+    mi->M02 =  det_inv*(m->M01*m->M12 - m->M11*m->M02);
+    mi->M12 = -det_inv*(m->M00*m->M12 - m->M10*m->M02);
+    mi->M22 =  det_inv*(m->M00*m->M11 - m->M10*m->M01);
+    
+    return 1;
+}
+/** 计算矩阵m的行列式,并将结果返回到堆栈
+ *  computes the determinate of a 3x3 matrix using co-factor expansion
+ *
+ *  @param m <#m description#>
+ *
+ *  @return <#return value description#>
+ */
+float
+Mat_Det_3X3(MATRIX3X3_PTR m) {
+    return(m->M00*(m->M11*m->M22 - m->M21*m->M12) -
+           m->M01*(m->M10*m->M22 - m->M20*m->M12) +
+           m->M02*(m->M10*m->M21 - m->M20*m->M11) );
+
+}
+/**
+ *  solves the system AX=B and computes X=A(-1)*B by using cramers rule and determinates
+ *
+ *  @param A <#A description#>
+ *  @param X <#X description#>
+ *  @param B <#B description#>
+ *
+ *  @return <#return value description#>
+ */
+int
+Solve_3X3_System(MATRIX3X3_PTR A, MATRIX1X3_PTR X, MATRIX1X3_PTR B) {
+    // step 1: compute determinate of A
+    float det_A = Mat_Det_3X3(A);
+    
+    // test if det(a) is zero, if so then there is no solution
+    if (fabs(det_A) < EPSILON_E5)
+        return(0);
+    
+    // step 2: create x,y,z numerator matrices by taking A and
+    // replacing each column of it with B(transpose) and solve
+    MATRIX3X3 work_mat; // working matrix
+    
+    // solve for x /////////////////
+    
+    // copy A into working matrix
+    MAT_COPY_3X3(A, &work_mat);
+    
+    // swap out column 0 (x column)
+    MAT_COLUMN_SWAP_3X3(&work_mat, 0, B);
+    
+    // compute determinate of A with B swapped into x column
+    float det_ABx = Mat_Det_3X3(&work_mat);
+    
+    // now solve for X00
+    X->M00 = det_ABx/det_A;
+    
+    // solve for y /////////////////
+    
+    // copy A into working matrix
+    MAT_COPY_3X3(A, &work_mat);
+    
+    // swap out column 1 (y column)
+    MAT_COLUMN_SWAP_3X3(&work_mat, 1, B);
+    
+    // compute determinate of A with B swapped into y column
+    float det_ABy = Mat_Det_3X3(&work_mat);
+    
+    // now solve for X01
+    X->M01 = det_ABy/det_A;
+    
+    // solve for z /////////////////
+    
+    // copy A into working matrix
+    MAT_COPY_3X3(A, &work_mat);
+    
+    // swap out column 2 (z column)
+    MAT_COLUMN_SWAP_3X3(&work_mat, 2, B);
+    
+    // compute determinate of A with B swapped into z column
+    float det_ABz = Mat_Det_3X3(&work_mat);
+    
+    // now solve for X02
+    X->M02 = det_ABz/det_A;
+    return 1;
+}
+/******************************************************************************/
+
+
+
+
+
+
+/******************************************************************************/
 
 
 
@@ -986,6 +1267,13 @@ Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B) {
 
 
 
+/******************************************************************************/
+
+
+
+
+
+/******************************************************************************/
 
 
 

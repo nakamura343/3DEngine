@@ -753,7 +753,7 @@ void Mat_Add_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR msum);
 void Mat_Mul_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mb,MATRIX2X2_PTR mprod);
 
 int Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi);
-
+//
 int Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B);
 
 
@@ -807,44 +807,51 @@ void Mat_Init_4X4(MATRIX4X4_PTR ma,
 int Mat_Inverse_4X4(MATRIX4X4_PTR m, MATRIX4X4_PTR mi);
 
 
-//四元数函数
+//四元数函数 quaternions functions
+/*
+   四元素没有太多的物理意义,无法以图形方式进行检查。
+   使用四元数会使很多操作简单化,eg:对于绕任意直线旋转的问题,如果使用四元数来求解将非常方便,
+   而使用欧拉方程则非常复杂,四元数就是一个超复数w 为实部,另外3个为虚部
+ */
+
+//将两个四元数q1和q2 相加,结果存储到qsum中
 void QUAT_Add(QUAT_PTR q1,QUAT_PTR q2,QUAT_PTR qsum);
-
+////将两个四元数q1和q2 相减,结果存储到qdiff中
 void QUAT_Sub(QUAT_PTR q1,QUAT_PTR q2,QUAT_PTR qdiff);
-
+//计算四元数q的共轭,并将结果存储到qconj中
 void QUAT_Conjugate(QUAT_PTR q,QUAT_PTR qconj);
-
+//根据缩放因子scale对四元数q进行缩放,并将结果储存到qs中
 void QUAT_Scale(QUAT_PTR q,float scale,QUAT_PTR qs);
-
+//直接缩放四元素q,即修改q
 void QUAT_Scale(QUAT_PTR q,float scale);
-
+//返回四元数的范数,即长度
 float QUAT_Norm(QUAT_PTR q);
-
+//返回四元数q的范数的平方,即长度的平方
 float QUAT_Norm2(QUAT_PTR q);
-
+//函数将四元数q归一化,并将结果存储在qn中
 void  QUAT_Normalize(QUAT_PTR q,QUAT_PTR qn);
 
 void QUAT_Normalize(QUAT_PTR q);
-
+//计算四元数q的逆,并将结果存储到qi中(q必须为单位四元数);因为该函数基于单位四元数的逆就是其共轭这一原理来求逆
 void QUAT_Unit_Inverse(QUAT_PTR q, QUAT_PTR qi);
 
 void QUAT_Unit_Inverse(QUAT_PTR q);
-
+//计算非单位四元数q的逆
 void QUAT_Inverse(QUAT_PTR q, QUAT_PTR qi);
 
 void QUAT_Inverse(QUAT_PTR q);
-
+//两个四元数相乘
 void QUAT_Mul(QUAT_PTR q1, QUAT_PTR q2, QUAT_PTR qprod);
-
+//3个四元数相乘,并将结果存储到qprod中,该函数对  点旋转有很大用处
 void QUAT_Triple_Product(QUAT_PTR q1, QUAT_PTR q2, QUAT_PTR q3,
                          QUAT_PTR qprod);
-
+//根据方向向量v和角度theta创建一个旋转四元数。
 void VECTOR3D_Theta_To_QUAT(QUAT_PTR q, VECTOR3D_PTR v, float theta);
 
 void VECTOR4D_Theta_To_QUAT(QUAT_PTR q, VECTOR4D_PTR v, float theta);
-
+//根据绕z,y,x 旋转的欧拉角创建一个旋转四元数.它是一种基本的相机转换.旋转顺序有6种(3的阶乘),zyz次序是最常见的
 void EulerZYX_To_QUAT(QUAT_PTR q, float theta_z, float theta_y, float theta_x);
-
+//将一个单位旋转四元数转换为一个单位3D向量和与一个绕该向量旋转的角度theta. VECTOR3D_Theta_To_QUAT()的反函数
 void QUAT_To_VECTOR3D_Theta(QUAT_PTR q, VECTOR3D_PTR v, float *theta);
 
 /******************************************************************************/
@@ -878,8 +885,9 @@ int Intersect_Parm_Line3D_Plane3D(PARMLINE3D_PTR pline,PLANE3D_PTR plane,
 
 /******************************************************************************/
 //定点数函数
+// 2个定点数相乘
 FIXP16 FIXP16_MUL(FIXP16 fp1,FIXP16 fp2);
-
+// 2个定点数相除
 FIXP16 FIXP16_DIV(FIXP16 fp1,FIXP16 fp2);
 
 

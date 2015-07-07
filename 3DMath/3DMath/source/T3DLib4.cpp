@@ -926,7 +926,8 @@ Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi) {
     // return sucess
     return 1;
 }
-/**
+/** 用于求解方程组 A*X = B,其中A为2x2, X为1x2 , B 为1X2 矩阵,若有解则存储在B中,且函数返回1;否则返回0,且B未定义
+ *  该函数使用 克莱姆法则来解方程组
  *  solves the system AX=B and computes X=A(-1)*B
  *  by using cramers rule and determinates
  *  @param A <#A description#>
@@ -937,32 +938,31 @@ Mat_Inverse_2X2(MATRIX2X2_PTR ma,MATRIX2X2_PTR mi) {
  */
 int
 Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B) {
-    // step 1: compute determinate of A
+    // step 1: 计算A的行列式值
     float det_A = Mat_Det_2X2(A);
     
-    // test if det(a) is zero, if so then there is no solution
+    // 检测det_A是否为0,若是0则无解返回
     if (fabs(det_A) < EPSILON_E5)
         return(0);
     
-    // step 2: create x,y numerator matrices by taking A and
-    // replacing each column of it with B(transpose) and solve
+    // step 2: 分别将矩阵A中的X,Y列替换为矩阵B,得到分子矩阵,以计算x和y的解
     MATRIX2X2 work_mat; // working matrix
     
-    // solve for x /////////////////
+    // 求解 x /////////////////
     
-    // copy A into working matrix
+    // 将A copy到 work_mat中
     MAT_COPY_2X2(A, &work_mat);
     
     // swap out column 0 (x column)
     MAT_COLUMN_SWAP_2X2(&work_mat, 0, B);
     
-    // compute determinate of A with B swapped into x column
+    // 计算交换后的行列式值
     float det_ABx = Mat_Det_2X2(&work_mat);
     
-    // now solve for X00
+    // 计算X的解
     X->M00 = det_ABx/det_A;
     
-    // solve for y /////////////////
+    // 求解 y /////////////////
     
     // copy A into working matrix
     MAT_COPY_2X2(A, &work_mat);
@@ -973,10 +973,9 @@ Solve_2X2_System(MATRIX2X2_PTR A,MATRIX1X2_PTR X,MATRIX1X2_PTR B) {
     // compute determinate of A with B swapped into y column
     float det_ABy = Mat_Det_2X2(&work_mat);
     
-    // now solve for X01
+    // 计算Y的解
     X->M01 = det_ABy/det_A;
     
-    // return success
     return 1;
 }
 /******************************************************************************/
@@ -1640,7 +1639,7 @@ QUAT_Inverse(QUAT_PTR q) {
 }
 /**
  *  this function mutiplies two quaternions
- *
+ *   warning: q1 * q2  不等于 q2 * q1,不满足交换律
  *  @param q1    <#q1 description#>
  *  @param q2    <#q2 description#>
  *  @param qprod <#qprod description#>
@@ -1656,7 +1655,7 @@ QUAT_Mul(QUAT_PTR q1, QUAT_PTR q2, QUAT_PTR qprod) {
     
     // this method was arrived at basically by trying to factor the above
     // expression to reduce the # of multiplies
-    
+    // 这种方法先计算共用因子,以减少乘法运算次数
     float prd_0 = (q1->z - q1->y) * (q2->y - q2->z);
     float prd_1 = (q1->w + q1->x) * (q2->w + q2->x);
     float prd_2 = (q1->w - q1->x) * (q2->y + q2->z);
@@ -1692,7 +1691,8 @@ QUAT_Triple_Product(QUAT_PTR q1, QUAT_PTR q2, QUAT_PTR q3,
     QUAT_Mul(q1,q2,&qtmp);
     QUAT_Mul(&qtmp, q3, qprod);
 }
-/**
+/** 使用一个3D方向向量和一个角度来初始化一个四元数,方向向量必须为单位向量,角度的单位必须为弧度
+ *  这个函数主要用于创建 对点旋转的四元数.
  *  initializes a quaternion based on a 3d direction vector and angle
  *  note the direction vector must be a unit vector and the angle is in rads
  *  @param q     <#q description#>
@@ -1711,11 +1711,7 @@ VECTOR3D_Theta_To_QUAT(QUAT_PTR q, VECTOR3D_PTR v, float theta) {
     q->w = cosf(theta_div_2);
 }
 /**
- *  initializes a quaternion based on a 4d direction vector and angle
- *  note the direction vector must be a unit vector and the angle is in rads
- *  @param q     <#q description#>
- *  @param v     <#v description#>
- *  @param theta <#theta description#>
+ * 使用一个4D方向向量和一个角度来初始化一个四元数,方向向量必须为单位向量,角度的单位必须为弧度
  */
 void
 VECTOR4D_Theta_To_QUAT(QUAT_PTR q, VECTOR4D_PTR v, float theta) {
@@ -1732,11 +1728,8 @@ VECTOR4D_Theta_To_QUAT(QUAT_PTR q, VECTOR4D_PTR v, float theta) {
  *  this function intializes a quaternion based on the zyx multiplication order
  *   of the angles that are parallel to the zyx axis respectively.
  *   note there are 11 other possibilities
- *
- *  @param q       <#q description#>
- *  @param theta_z <#theta_z description#>
- *  @param theta_y <#theta_y description#>
- *  @param theta_x <#theta_x description#>
+ *   这个函数根据绕x,y,z旋转的角度,创建一个的zyx次序进行旋转对应的四元数
+ *   主意:还有11 个根据旋转角度创建四元数的函数
  */
 void
 EulerZYX_To_QUAT(QUAT_PTR q, float theta_z, float theta_y, float theta_x) {
@@ -1755,7 +1748,7 @@ EulerZYX_To_QUAT(QUAT_PTR q, float theta_z, float theta_y, float theta_x) {
     q->y = cos_z_2*sin_y_2*cos_x_2 + sin_z_2*cos_y_2*sin_x_2;
     q->z = sin_z_2*cos_y_2*cos_x_2 - cos_z_2*sin_y_2*sin_x_2;
 }
-/**
+/** 这个函数将一个单位四元数转换为一个的那位方向向量 和一个绕该向量旋转的角度
  *  this function converts a unit quaternion into a unit direction
  *  vector and rotation angle about that vector
  *  @param q     <#q description#>
@@ -1764,7 +1757,7 @@ EulerZYX_To_QUAT(QUAT_PTR q, float theta_z, float theta_y, float theta_x) {
  */
 void
 QUAT_To_VECTOR3D_Theta(QUAT_PTR q, VECTOR3D_PTR v, float *theta) {
-    // extract theta
+    // extract theta 提取角度
     *theta = acosf(q->w);
     // pre-compute to save time
     float sinf_theta_inv = 1.0/sinf(*theta);
@@ -1984,7 +1977,7 @@ Intersect_Parm_Line3D_Plane3D(PARMLINE3D_PTR pline,PLANE3D_PTR plane,
 FIXP16
 FIXP16_MUL(FIXP16 fp1,FIXP16 fp2) {
     FIXP16 fp_prod; // return the product
-    
+     //MS VC 平台 内联汇编
     _asm {
         mov eax, fp1      // move into eax fp2
         imul fp2          // multiply fp1*fp2
@@ -1993,9 +1986,8 @@ FIXP16_MUL(FIXP16 fp1,FIXP16 fp2) {
                           // shift it into eax alone 16:16
                           // result is sitting in eax
     }
-   
 }
- */
+*/
 /**
  *  this function computes the quotient fp1/fp2 using
  *  64 bit math, so as not to loose precision

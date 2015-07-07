@@ -26,10 +26,10 @@
 #define SWAP(a,b,t) {t=a; a=b; b=t;}
 
 //some math macros
-#define DEG_TO_RAD(ang) ((ang)*PI)/180.0)
+#define DEG_TO_RAD(ang) ((ang)*PI/180.0)
 #define RAD_TO_DEG(rads) ((rads)*180.0/PI)
 
-#define RAND_RANGE(x,y) ((x) + (rand() % ((y) - (x) + 1)))
+#define RAND_RANGE(x,y) ( (x) + (rand()%((y)-(x)+1)))
 
 void Build_Sin_Cos_Tables(void);
 // math functions

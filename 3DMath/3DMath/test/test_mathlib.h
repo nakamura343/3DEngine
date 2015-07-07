@@ -37,4 +37,29 @@ void test_PLANE3D_Init();
 void test_Compute_Point_In_Plane3D();
 
 void test_Intersect_Parm_Line3D_Plane3D();
+
+void test_VECTOR3D_Theta_To_QUAT();
+
+void test_EulerZYX_To_QUAT();
+
+void test_QUAT_To_VECTOR3D_Theta();
+
+void test_QUAT_Add();
+
+void test_QUAT_Sub();
+
+void test_QUAT_Conjugate();
+
+void test_QUAT_Scale();
+
+void test_QUAT_Normalize();
+
+void test_QUAT_Unit_Inverse();
+
+void test_QUAT_Inverse();
+
+void test_QUAT_Mul();
+
+void test_QUAT_Triple_Product();
+
 #endif /* defined(___DMath__test_mathlib__) */

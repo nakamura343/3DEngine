@@ -131,7 +131,127 @@ test_Intersect_Parm_Line3D_Plane3D() {
     //计算交点;应为(5,5,0)
     int intersection_type = Intersect_Parm_Line3D_Plane3D(&pl, &plane, &t, &pt);
     printf("intersection_type==%d",intersection_type);
-
-    
 }
+
+void
+test_VECTOR3D_Theta_To_QUAT() {
+    VECTOR3D v = {1,1,1};
+    QUAT qr ;
+    //对向量v 归一化
+    VECTOR3D_Normalize(&v);
+    
+    float theta = DEG_TO_RAD(100); //100度
+    //创建一个绕向量v旋转100度的四元数
+    VECTOR3D_Theta_To_QUAT(&qr, &v, theta);
+}
+
+
+void
+test_EulerZYX_To_QUAT() {
+    QUAT qzyx;
+    
+    //创建旋转角
+    float theta_x = DEG_TO_RAD(20);
+    float theta_y = DEG_TO_RAD(30);
+    float theta_z = DEG_TO_RAD(40);
+
+    EulerZYX_To_QUAT(&qzyx, theta_z, theta_y, theta_x);
+}
+
+
+void
+test_QUAT_To_VECTOR3D_Theta() {
+    QUAT q;
+    
+    float theta;
+    VECTOR3D v;
+
+    QUAT_To_VECTOR3D_Theta(&q, &v, &theta);
+}
+
+void
+test_QUAT_Add() {
+    QUAT  q1 = {1,2,3,4}, q2 = {5,6,7,8},qsum;
+    QUAT_Add(&q1, &q2, &qsum);
+}
+
+void
+test_QUAT_Sub() {
+    QUAT  q1 = {1,2,3,4}, q2 = {5,6,7,8},qdiff;
+    QUAT_Sub(&q1, &q2, &qdiff);
+}
+
+void
+test_QUAT_Conjugate() {
+    QUAT q = {1,2,3,4},qconj;
+    
+    QUAT_Conjugate(&q, &qconj);
+}
+
+void
+test_QUAT_Scale() {
+    QUAT q = {1,2,3,4},qs;
+    QUAT_Scale(&q, 2, &qs);
+}
+
+void
+test_QUAT_Normalize() {
+    QUAT q = {1,2,3,4},qn;
+    
+    QUAT_Normalize(&q, &qn);
+}
+
+
+void
+test_QUAT_Unit_Inverse() {
+    QUAT q = {1,2,3,4},qi;
+    QUAT_Unit_Inverse(&q, &qi);
+}
+
+
+void
+test_QUAT_Inverse() {
+    QUAT q = {1,2,3,4},qi;
+    QUAT_Inverse(&q, &qi);
+}
+
+void
+test_QUAT_Mul() {
+    QUAT  q1 = {1,2,3,4}, q2 = {5,6,7,8},qprod;
+    QUAT_Mul(&q1, &q2, &qprod);
+}
+
+void
+test_QUAT_Triple_Product() {
+    VECTOR3D vz = {0,0,1};
+    
+    QUAT qr,qrc;
+    //创建旋转四元数
+    VECTOR3D_Theta_To_QUAT(&qr, &vz, DEG_TO_RAD(45));
+    //计算共轭
+    QUAT_Conjugate(&qr, &qrc);
+    //创建一个表示点的四元数,将q0设置为0
+    //将x,yz,设置与前置点相应的坐标
+    QUAT qp = {0,5,0,0},qprod;
+    //执行旋转,将点p绕z轴旋转45度(当然旋转轴可以是任何轴)
+    QUAT_Triple_Product(&qr, &qp, &qrc, &qprod);
+    //结果中q0仍为0,我们需要从四元数中提取x,y,z 便可以得到旋转后的点
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

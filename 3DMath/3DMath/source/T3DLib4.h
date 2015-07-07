@@ -807,12 +807,45 @@ void Mat_Init_4X4(MATRIX4X4_PTR ma,
 int Mat_Inverse_4X4(MATRIX4X4_PTR m, MATRIX4X4_PTR mi);
 
 
-//
+//四元数函数
+void QUAT_Add(QUAT_PTR q1,QUAT_PTR q2,QUAT_PTR qsum);
 
+void QUAT_Sub(QUAT_PTR q1,QUAT_PTR q2,QUAT_PTR qdiff);
 
+void QUAT_Conjugate(QUAT_PTR q,QUAT_PTR qconj);
 
+void QUAT_Scale(QUAT_PTR q,float scale,QUAT_PTR qs);
 
+void QUAT_Scale(QUAT_PTR q,float scale);
 
+float QUAT_Norm(QUAT_PTR q);
+
+float QUAT_Norm2(QUAT_PTR q);
+
+void  QUAT_Normalize(QUAT_PTR q,QUAT_PTR qn);
+
+void QUAT_Normalize(QUAT_PTR q);
+
+void QUAT_Unit_Inverse(QUAT_PTR q, QUAT_PTR qi);
+
+void QUAT_Unit_Inverse(QUAT_PTR q);
+
+void QUAT_Inverse(QUAT_PTR q, QUAT_PTR qi);
+
+void QUAT_Inverse(QUAT_PTR q);
+
+void QUAT_Mul(QUAT_PTR q1, QUAT_PTR q2, QUAT_PTR qprod);
+
+void QUAT_Triple_Product(QUAT_PTR q1, QUAT_PTR q2, QUAT_PTR q3,
+                         QUAT_PTR qprod);
+
+void VECTOR3D_Theta_To_QUAT(QUAT_PTR q, VECTOR3D_PTR v, float theta);
+
+void VECTOR4D_Theta_To_QUAT(QUAT_PTR q, VECTOR4D_PTR v, float theta);
+
+void EulerZYX_To_QUAT(QUAT_PTR q, float theta_z, float theta_y, float theta_x);
+
+void QUAT_To_VECTOR3D_Theta(QUAT_PTR q, VECTOR3D_PTR v, float *theta);
 
 
 

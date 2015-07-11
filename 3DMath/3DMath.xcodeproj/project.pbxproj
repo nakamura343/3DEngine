@@ -11,6 +11,7 @@
 		793BE5DA1B4A53CB002227B8 /* T3DLib1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5D41B4A53CB002227B8 /* T3DLib1.cpp */; };
 		793BE5DB1B4A53CB002227B8 /* T3DLib4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5D61B4A53CB002227B8 /* T3DLib4.cpp */; };
 		793BE5DE1B4A5440002227B8 /* test_mathlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 793BE5DC1B4A5440002227B8 /* test_mathlib.cpp */; };
+		79DA89661B4F8DDC008ADD22 /* T3DLib5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 79DA89641B4F8DDC008ADD22 /* T3DLib5.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,6 +35,8 @@
 		793BE5DC1B4A5440002227B8 /* test_mathlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_mathlib.cpp; sourceTree = "<group>"; };
 		793BE5DD1B4A5440002227B8 /* test_mathlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test_mathlib.h; sourceTree = "<group>"; };
 		79A778361B4A18BE0071E4F3 /* 3DMath */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 3DMath; sourceTree = BUILT_PRODUCTS_DIR; };
+		79DA89641B4F8DDC008ADD22 /* T3DLib5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = T3DLib5.cpp; sourceTree = "<group>"; };
+		79DA89651B4F8DDC008ADD22 /* T3DLib5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = T3DLib5.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +67,8 @@
 				793BE5D51B4A53CB002227B8 /* T3DLib1.h */,
 				793BE5D61B4A53CB002227B8 /* T3DLib4.cpp */,
 				793BE5D71B4A53CB002227B8 /* T3DLib4.h */,
+				79DA89641B4F8DDC008ADD22 /* T3DLib5.cpp */,
+				79DA89651B4F8DDC008ADD22 /* T3DLib5.h */,
 			);
 			path = source;
 			sourceTree = "<group>";
@@ -150,6 +155,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				793BE5DA1B4A53CB002227B8 /* T3DLib1.cpp in Sources */,
+				79DA89661B4F8DDC008ADD22 /* T3DLib5.cpp in Sources */,
 				793BE5DE1B4A5440002227B8 /* test_mathlib.cpp in Sources */,
 				793BE5D91B4A53CB002227B8 /* main.cpp in Sources */,
 				793BE5DB1B4A53CB002227B8 /* T3DLib4.cpp in Sources */,

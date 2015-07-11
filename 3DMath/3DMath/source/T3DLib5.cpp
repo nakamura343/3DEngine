@@ -445,50 +445,46 @@ Build_CAM4DV1_Matrix_Euler(CAM4DV1_PTR cam, int cam_rot_seq) {
     //接下来将其乘以逆平移矩阵,并将结果存储到相机对象的相机变化矩阵中
     Mat_Mul_4X4(&mt_inv, &mrot, &cam->mcam);
 }
-
+/**
+ *  UVN模型的相机函数如下:
+ *
+ *  @param cam  相机对象
+ *  @param mode 参数mode指定如何计算uvn 
+ */
 void
 Build_CAM4DV1_Matrix_UVN(CAM4DV1_PTR cam, int mode) {
-    MATRIX4X4 mt_inv,  // inverse camera translation matrix
-    mt_uvn,  // the final uvn matrix
-    mtmp;    // temporary working matrix
+    MATRIX4X4 mt_inv,  // 逆相机平移矩阵
+    mt_uvn,  // UVN相机变换矩阵
+    mtmp;    // 用于存储临时矩阵
     
-    // step 1: create the inverse translation matrix for the camera
-    // position
+    // step 1: 根据相机位置创建逆平移矩阵
     Mat_Init_4X4(&mt_inv, 1,    0,     0,     0,
                  0,    1,     0,     0,
                  0,    0,     1,     0,
                  -cam->pos.x, -cam->pos.y, -cam->pos.z, 1);
-    
-    
-    // step 2: determine how the target point will be computed
-    if (mode == UVN_MODE_SPHERICAL)
-    {
-        // use spherical construction
-        // target needs to be recomputed
+    // step 2: 确定如何计算目标点
+    if (mode == UVN_MODE_SPHERICAL) {
+        // 使用球面坐标模式;需要重新计算目标点
+        // 提取方位角和仰角
+        float phi   = cam->dir.x; // elevation 仰角
+        float theta = cam->dir.y; // heading 方位角
         
-        // extract elevation and heading
-        float phi   = cam->dir.x; // elevation
-        float theta = cam->dir.y; // heading
-        
-        // compute trig functions once
+        // 计算三角函数
         float sin_phi = Fast_Sin(phi);
         float cos_phi = Fast_Cos(phi);
         
         float sin_theta = Fast_Sin(theta);
         float cos_theta = Fast_Cos(theta);
-        
-        // now compute the target point on a unit sphere x,y,z
+        // 计算目标点在单位球面上的位置 x,y,z
         cam->target.x = -1*sin_phi*sin_theta;
         cam->target.y =  1*cos_phi;
         cam->target.z =  1*sin_phi*cos_theta;
-    } // end else
-    
-    // at this point, we have the view reference point, the target and that's
-    // all we need to recompute u,v,n
-    // Step 1: n = <target position - view reference point>
+    }
+    // 至此,有个重新计算u v n 所需的全部参数
+    // Step 1: n = <目标位置 - 观察参考点>
     VECTOR4D_Build(&cam->pos, &cam->target, &cam->n);
     
-    // Step 2: Let v = <0,1,0>
+    // Step 2: 将 v = <0,1,0>
     VECTOR4D_INITXYZ(&cam->v,0,1,0);
     
     // Step 3: u = (v x n)
@@ -497,22 +493,152 @@ Build_CAM4DV1_Matrix_UVN(CAM4DV1_PTR cam, int mode) {
     // Step 4: v = (n x u)
     VECTOR4D_Cross(&cam->n,&cam->u,&cam->v);
     
-    // Step 5: normalize all vectors
+    // Step 5: 对所有向量都进行归一化
     VECTOR4D_Normalize(&cam->u);
     VECTOR4D_Normalize(&cam->v);
     VECTOR4D_Normalize(&cam->n);
     
     
-    // build the UVN matrix by placing u,v,n as the columns of the matrix
+    // 将uvn 代入,得到uvn旋转矩阵
     Mat_Init_4X4(&mt_uvn, cam->u.x,    cam->v.x,     cam->n.x,     0,
                  cam->u.y,    cam->v.y,     cam->n.y,     0,
                  cam->u.z,    cam->v.z,     cam->n.z,     0,
                  0,           0,            0,            1);
     
-    // now multiply the translation matrix and the uvn matrix and store in the 
-    // final camera matrix mcam
+    // 将平移矩阵乘以uvn矩阵,并将结果存储到相机变换矩阵mcam中
     Mat_Mul_4X4(&mt_inv, &mt_uvn, &cam->mcam);
 }
+
+/******************************************************************************/
+
+//1: 物体的 世界坐标 到 相机坐标 变换
+
+/** 这个函数的速度很快,也更紧凑,它接受一个物体和一台相机作为参数,设置好物体和相机后，用该函数
+ *  这是一个基于矩阵的函数,它根据传入的相机变换矩阵,将物体的世界坐标变换为相机坐标
+ *  它完全不考虑多边形本身,只是对vlist_trans[]中的顶点进行变换,这是变换方法之一,您可能选择对
+ *  渲染列表进行变换,因为渲染列表中的多边形表示的几何体都通过了背景剔除
+ *  @param cam 相机对象
+ *  @param obj 3D对象
+ */
+void
+World_To_Camera_OBJECT4DV1(CAM4DV1_PTR cam,OBJECT4DV1_PTR obj) {
+    //将物体的每个顶点变换为相机坐标;这里假设顶点已经被变换为世界坐标,且结果存储在vlist_trans[]中
+    for (int vertex = 0; vertex < obj->num_vertices; vertex++) {
+        //使用相机对象中的矩阵mcam对顶点进行变换
+        POINT4D presult;//用于存储每次变换的结果
+        //对顶点进行变换
+        Mat_Mul_VECTOR4D_4X4(&obj->vlist_trans[vertex], &cam->mcam, &presult);
+        //将结果存回去
+        VECTOR4D_COPY(&obj->vlist_trans[vertex], &presult);
+    }
+}
+
+
+//2: 渲染列表的 世界坐标 到 相机坐标 变换 (执行到这个步骤,流水线已经完成了一半左右,接下来需要进行透视变换 和 屏幕 变换)
+/**  基于矩阵:根据传入的相机变换矩阵将渲染列表中的每个多边形变换为相机坐标;
+ *   如果在流水线的上游已经将每个物体转换为多边形并将他们插入到渲染列表中,将使用这个函数,而不是基于物体
+ *   的函数对顶点进行变换,将物体转换为多边形的操作是在物体剔除,局部变换,局部坐标 到 世界坐标 变换
+ *   以及北京消除之后进行的; 这样最大限度地减少了每个物体中被插入到渲染列表中的多边形数目
+ *
+ *    这个函数假设至少已经进行了局部坐标 到 世界坐标 变换 ;且多边形数据存储在POLYF4D1 的变换后的列表tvlist
+ *
+ *  执行渲染列表变换的专用函数,唯一复杂的地方是:需要遍历列表中的每个多边形;而对OBJECT4DV1进行变换
+ *  的专用函数中,只需要对一个顶点列表进行变换
+ *
+ *  @param rend_list 渲染列表
+ *  @param cam       相机对象
+ */
+void
+World_To_Camera_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam) {
+    //就渲染列表中的每个多边形变换为相机坐标;
+    for(int poly = 0; poly < rend_list->num_polys; poly++) {
+        POLYF4DV1_PTR curr_poly = rend_list->poly_ptrs[poly];
+        //判断多边形是够有效
+        if((curr_poly == NULL) || (curr_poly->state & POLY4DV1_STATE_ACTIVE)
+           || (curr_poly->state & POLY4DV1_STATE_CLIPPED)
+           || (curr_poly->state &POLY4DV1_STATE_BACKFACE) ) {
+            
+            for (int vertex = 0 ;vertex < 3  ; vertex ++) {
+                POINT4D presult;
+                Mat_Mul_VECTOR4D_4X4(&curr_poly->tvlist[vertex], &cam->mcam, &presult);
+                VECTOR4D_COPY(&curr_poly->tvlist[vertex], &presult);
+            }
+        }
+    }
+}
+
+/******************************************************************************/
+
+//物体剔除操作 culling,以避免在以后的流水线 进行变换 ()
+
+/** 基于矩阵 根据传入的相机信息判断物体是否  在视景体内
+ *  该函数接受物体的世界空间位置和平均最大半径作为参数,并根据当前的相机变换 来剔除物体(只适用于物体,因为物体变换为多边形并
+    插入到主渲染列表后将不再有物体的概念)
+ *
+ *  @param obj        要进行剔除操作的 3d对象
+ *  @param cam        剔除时使用的相机
+ *  @param cull_flags 要考虑的裁剪面,其值为各种剔除标记,如果物体被剔除,将相应的设置其状态
+ *
+ *  @return <#return value description#>
+ */
+int
+Cull_OBJECT4DV1(OBJECT4DV1_PTR obj, CAM4DV1_PTR cam, int cull_flags) {
+    //step 1: 将物体的包围球球心 变换为相机坐标
+    POINT4D sphere_pos;//存储变换后的坐标
+    Mat_Mul_VECTOR4D_4X4(&obj->world_pos, &cam->mcam, &sphere_pos);
+    
+    //step 2: 根据剔除标记对物体执行剔除操作
+    if (cull_flags & CULL_OBJECT_Z_PLANE) {
+        //只根据远近裁剪面来剔除物体
+        //使用远近裁剪面进行测试
+        if (((sphere_pos.z - obj->max_radius) > cam->far_clip_z )
+            || (sphere_pos.z + obj->max_radius) < cam->near_clip_z) {
+            SET_BIT(obj->state, OBJECT4DV1_STATE_CULLED);
+            return 1;
+        }
+    }
+    
+    if (cull_flags & CULL_OBJECT_X_PLANE) {
+        //只根据左右裁剪面进行物体剔除,本可以使用平面方程,但使用三角形相似更容易
+        //因为这是一种2D问题,如果视野为90度,问题更简单,这里假设视野不为90度
+        
+        //使用右裁剪面和左裁剪面 检测包围球上 最左边 和 最右边 的点
+        float z_test = (0.5) * cam->viewplane_width * sphere_pos.z / cam->view_dist;
+        if (((sphere_pos.x - obj->max_radius) > z_test ) //right
+            || (sphere_pos.z + obj->max_radius) < z_test) { //left
+            SET_BIT(obj->state, OBJECT4DV1_STATE_CULLED);
+            return 1;
+        }
+    }
+    
+    
+    if (cull_flags & CULL_OBJECT_Y_PLANE) {
+        //只根据上下裁剪面进行物体剔除,本可以使用平面方程,但使用三角形相似更容易
+        //因为这是一种2D问题,如果视野为90度,问题更简单,这里假设视野不为90度
+        
+        //使用上裁剪面和下裁剪面 检测包围球上 最下边 和 最上边 的点
+        float z_test = (0.5) * cam->viewplane_width * sphere_pos.z / cam->view_dist;
+        if (((sphere_pos.x - obj->max_radius) > z_test ) //right
+            || (sphere_pos.z + obj->max_radius) < z_test) { //left
+            SET_BIT(obj->state, OBJECT4DV1_STATE_CULLED);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

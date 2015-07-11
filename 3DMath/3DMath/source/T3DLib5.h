@@ -60,12 +60,18 @@ typedef struct POLYF4DV1_TYP{
 #define POLY4DV1_STATE_CLIPPED            0x0002
 #define POLY4DV1_STATE_BACKFACE           0x0004
 
-// render list defines
-#define RENDERLIST4DV1_MAX_POLYS          32768// 16384
-
 // defines for objects version 1
 #define OBJECT4DV1_MAX_VERTICES           1024  // 64
 #define OBJECT4DV1_MAX_POLYS              1024 // 128
+
+//states for objects
+#define OBJECT4DV1_STATE_ACTIVE           0x0001
+#define OBJECT4DV1_STATE_VISIBLE          0x0002
+#define OBJECT4DV1_STATE_CULLED           0x0004
+
+
+// render list defines
+#define RENDERLIST4DV1_MAX_POLYS          32768// 16384
 
 
 #define TRANSFORM_LOCAL_ONLY       0  //对局部/模型顶点列表进行变换
@@ -73,6 +79,12 @@ typedef struct POLYF4DV1_TYP{
 #define TRANSFORM_TRANS_ONLY       1   //对变换后的顶点列表进行变换
 
 #define TRANSFORM_LOCAL_TO_TRANS   2   //对局部顶点列表进行变换,并将结果存储在变换后的顶点列表中
+
+//general culling flags 剔除标记状态
+#define CULL_OBJECT_X_PLANE           0x0001 // 根据左右裁剪面进行剔除
+#define CULL_OBJECT_Y_PLANE           0x0002 // cull on the y clipping planes
+#define CULL_OBJECT_Z_PLANE           0x0004 // cull on the z clipping planes
+#define CULL_OBJECT_XYZ_PLANES        (CULL_OBJECT_X_PLANE | CULL_OBJECT_Y_PLANE | CULL_OBJECT_Z_PLANE)
 
 
 // defines for camera rotation sequences
@@ -91,8 +103,8 @@ typedef struct POLYF4DV1_TYP{
 #define CAM_MODEL_EULER            0x0008
 #define CAM_MODEL_UVN              0x0010
 
-#define UVN_MODE_SIMPLE            0
-#define UVN_MODE_SPHERICAL         1
+#define UVN_MODE_SIMPLE            0    //低级简单模型,使用目标位置和观察参考点
+#define UVN_MODE_SPHERICAL         1    //球面坐标模式,分量x和y被用作观察向量的方位角和仰角
 
 
 // an object based on a vertex list and list of polygons
@@ -186,7 +198,7 @@ typedef struct CAM4DV1_TYP {
 void Reset_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list);
 
 void Transform_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,MATRIX4X4_PTR mt,int coord_select);
-
+//应用变换矩阵,对世界坐标进行变换
 void Transform_OBJECT4DV1(OBJECT4DV1_PTR obj,MATRIX4X4_PTR mt, int coord_select, int transform_basis);
 
 void Model_To_World_OBJECT4DV1(OBJECT4DV1_PTR obj, int coord_select) ;
@@ -200,10 +212,16 @@ void Init_CAM4DV1(CAM4DV1_PTR cam, int attr, POINT4D_PTR cam_pos,
                   VECTOR4D_PTR cam_dir, VECTOR4D_PTR cam_target,
                   float near_clip_z, float far_clip_z, float fov,
                   float viewport_width,  float viewport_height);
-//欧拉相机
+//生成欧拉相机 变换矩阵
 void Build_CAM4DV1_Matrix_Euler(CAM4DV1_PTR cam, int cam_rot_seq);
 //UVN相机
 void Build_CAM4DV1_Matrix_UVN(CAM4DV1_PTR cam, int mode);
+//物体世界坐标 到 相机坐标变换
+void World_To_Camera_OBJECT4DV1(CAM4DV1_PTR cam,OBJECT4DV1_PTR obj);
+//渲染列表的 世界坐标 到 相机坐标 变换
+void World_To_Camera_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam);
 
 
+//物体剔除操作 culling,以避免在以后的流水线 进行变换
+int Cull_OBJECT4DV1(OBJECT4DV1_PTR obj, CAM4DV1_PTR cam, int cull_flags) ;
 #endif /* defined(___DMath__T3DLib5__) */

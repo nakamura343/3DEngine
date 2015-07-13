@@ -378,6 +378,15 @@ VECTOR4D_INITXYZ(VECTOR4D_PTR v,float x, float y,float z) {
     (v)->w = 1.0;
 }
 
+// used to convert from 4D homogenous to 4D non-homogenous
+// 将4d齐次坐标 转换为 非齐次坐标
+inline void VECTOR4D_DIV_BY_W(VECTOR4D_PTR v)
+{(v)->x/=(v)->w; (v)->y/=(v)->w; (v)->z/=(v)->w;  }
+
+inline void VECTOR4D_DIV_BY_W_VECTOR3D(VECTOR4D_PTR v4, VECTOR3D_PTR v3)
+{(v3)->x = (v4)->x/(v4)->w; (v3)->y = (v4)->y/(v4)->w; (v3)->z = (v4)->z/(v4)->w;  }
+
+
 //使用另一个向量来初始化向量的宏
 inline void
 VECTOR2D_INIT(VECTOR2D_PTR vdst,VECTOR2D_PTR vsrc) {

@@ -129,8 +129,7 @@ typedef struct OBJECT4DV1_TYP {
     POINT4D vlist_trans[OBJECT4DV1_MAX_VERTICES]; // 储存变换后的顶点坐标的数组
     
     int num_polys;        // 物体网格的多边形数
-    POLY4DV1 plist[OBJECT4DV1_MAX_POLYS];  // 多边形数组
-    
+    POLY4DV1 plist[OBJECT4DV1_MAX_POLYS];  // 多边形数组    
 } OBJECT4DV1, *OBJECT4DV1_PTR;
 
 
@@ -224,4 +223,28 @@ void World_To_Camera_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam
 
 //物体剔除操作 culling,以避免在以后的流水线 进行变换
 int Cull_OBJECT4DV1(OBJECT4DV1_PTR obj, CAM4DV1_PTR cam, int cull_flags) ;
+//重置物体的标记
+void Reset_OBJECT4DV1(OBJECT4DV1_PTR obj);
+//物体的背面消除
+void Remove_Backfaces_OBJECT4DV1(OBJECT4DV1_PTR obj,CAM4DV1_PTR cam);
+//渲染列表的背面消除
+void Remove_Backfaces_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam);
+//物体的透视变换(非矩阵)
+void Camera_To_Perspective_OBJECT4DV1(OBJECT4DV1_PTR obj, CAM4DV1_PTR cam);
+//矩阵来执行投影
+void Build_Camera_To_Perspective_MATRIX4X4(CAM4DV1_PTR cam,MATRIX4X4_PTR m);
+//执行透视变换后,顶点的w坐标不再为1.0,必须除以w分量 将齐次坐标转换为 非 齐次坐标
+void Convert_From_Homogeneous4D_OBJECT4DV1(OBJECT4DV1_PTR obj);
+// 渲染列表的透视变换
+void Camera_To_Perspective_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list, CAM4DV1_PTR cam);
+//齐次坐标转换为非齐次坐标 4d坐标 转换 为 3d坐标
+void Convert_From_Hogogeneous4D_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list);
+
+
+
+
+
+
+
+
 #endif /* defined(___DMath__T3DLib5__) */

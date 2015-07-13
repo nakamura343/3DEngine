@@ -151,7 +151,7 @@ Transform_OBJECT4DV1(OBJECT4DV1_PTR obj,MATRIX4X4_PTR mt, int coord_select, int 
         VECTOR4D_COPY(&obj->uy, &vresult);
         //旋转uz
         Mat_Mul_VECTOR4D_4X4(&obj->uz, mt, &vresult);
-        VECTOR4D_COPY(&obj->uz, &vresult); 
+        VECTOR4D_COPY(&obj->uz, &vresult);
     }
 }
 
@@ -187,9 +187,9 @@ Build_Model_To_World_MATRIX4X4(VECTOR4D_PTR vpos, MATRIX4X4_PTR m) {
 
 /**************渲染列表的局部坐标到世界坐标变换******************************************/
 /*
-   大多数情况下,在对物体执行局部坐标到世界坐标变换后,才将物体的多边形插入到渲染列表中,因此,根本不需要
-   对整个渲染列表执行局部坐标到世界坐标变换. 但当您不想使用OBJECT4DV1,而是将多边形直接加载到表示某些大型
-   网格(如地形)的
+ 大多数情况下,在对物体执行局部坐标到世界坐标变换后,才将物体的多边形插入到渲染列表中,因此,根本不需要
+ 对整个渲染列表执行局部坐标到世界坐标变换. 但当您不想使用OBJECT4DV1,而是将多边形直接加载到表示某些大型
+ 网格(如地形)的
  
  */
 void
@@ -245,9 +245,9 @@ Model_To_World_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,POINT4D_PTR world_pos
  */
 void
 Init_CAM4DV1(CAM4DV1_PTR cam,int cam_attr,POINT4D_PTR cam_pos,VECTOR4D_PTR cam_dir,
-                  POINT4D_PTR cam_target,float near_clip_z,float far_clip_z,
-                  float fov,float viewport_width,float viewport_height) {
-
+             POINT4D_PTR cam_target,float near_clip_z,float far_clip_z,
+             float fov,float viewport_width,float viewport_height) {
+    
     cam->attr = cam_attr;              // camera attributes
     
     VECTOR4D_COPY(&cam->pos, cam_pos); // positions
@@ -292,7 +292,7 @@ Init_CAM4DV1(CAM4DV1_PTR cam,int cam_attr,POINT4D_PTR cam_pos,VECTOR4D_PTR cam_d
     
     // 判断fov是否为90度
     if (fov == 90.0) {
-   
+        
         // 建立裁剪面!
         POINT3D pt_origin; // point on the plane
         VECTOR3D_INITXYZ(&pt_origin,0,0,0);
@@ -316,7 +316,7 @@ Init_CAM4DV1(CAM4DV1_PTR cam,int cam_attr,POINT4D_PTR cam_pos,VECTOR4D_PTR cam_d
         PLANE3D_Init(&cam->bt_clip_plane, &pt_origin,  &vn, 1);
     }
     else {                  //计算fov不为90时的裁剪面
-    
+        
         POINT3D pt_origin;  //平面上的一个点
         VECTOR3D_INITXYZ(&pt_origin,0,0,0);
         
@@ -449,7 +449,7 @@ Build_CAM4DV1_Matrix_Euler(CAM4DV1_PTR cam, int cam_rot_seq) {
  *  UVN模型的相机函数如下:
  *
  *  @param cam  相机对象
- *  @param mode 参数mode指定如何计算uvn 
+ *  @param mode 参数mode指定如何计算uvn
  */
 void
 Build_CAM4DV1_Matrix_UVN(CAM4DV1_PTR cam, int mode) {
@@ -573,7 +573,7 @@ World_To_Camera_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam) {
 
 /** 基于矩阵 根据传入的相机信息判断物体是否  在视景体内
  *  该函数接受物体的世界空间位置和平均最大半径作为参数,并根据当前的相机变换 来剔除物体(只适用于物体,因为物体变换为多边形并
-    插入到主渲染列表后将不再有物体的概念)
+ 插入到主渲染列表后将不再有物体的概念)
  *
  *  @param obj        要进行剔除操作的 3d对象
  *  @param cam        剔除时使用的相机
@@ -626,6 +626,250 @@ Cull_OBJECT4DV1(OBJECT4DV1_PTR obj, CAM4DV1_PTR cam, int cull_flags) {
     }
     return 0;
 }
+
+
+//重置物体的标记
+/**
+ *  这个函数重置传入的状态,为变换做准备;通常是重置被剔除,被裁剪掉和背面等标记,也可以在这里做其他准备工作
+ *  物体是有效的,接下来重置其各个多边形的状态标记
+ *  @param obj 3D物体
+ */
+void
+Reset_OBJECT4DV1(OBJECT4DV1_PTR obj) {
+    //重置物体的被剔除标记
+    RESET_BIT(obj->state, OBJECT4DV1_STATE_CULLED);
+    //重置多边形的被裁剪掉 和 背景 标记
+    for (int poly = 0 ; poly < obj->num_polys; poly++) {
+        POLY4DV1_PTR curr_poly = &obj->plist[poly];
+        
+        //判断多边形是否可见
+        if (!(curr_poly->state & OBJECT4DV1_STATE_ACTIVE))
+            continue; //进入下一个多边形
+        RESET_BIT(curr_poly->state, POLY4DV1_STATE_BACKFACE);
+        RESET_BIT(curr_poly->state, POLY4DV1_STATE_CLIPPED);
+    }
+}
+
+//1 :物体的背面消除
+
+// 物体的背面消除（删除背向视点的多边形）;简单地说:将对物体或者渲染列表的每个多边形进行测试(将计算一个多边形到视点的方向向
+// 量和多边形外向法线以及他们之间的夹角 :如果 夹角大于 90度,表示该多边形是背面,需要消除掉,是不可见的 )
+// 当然,背面的概念只对单面多边形有意义,对于那些从两边都可以看到（既双面）多边形,这种测试是无意义的
+// 这种测试通常是在世界空间 而不是 相机空间 进行的(因为只需要知道视点),这样可通过背面消除删除
+//大量的多边形,避免对它们进行世界在坐标到相机坐标变换;这是一种不错的删除一半 几何体的方法
+/**
+ *  基于矩阵,根据数组vlist_trans中的顶点数据以及相机位置,消除物体的背面多边形,这里只设置多边形的背面状态
+ *
+ *  @param obj 3D对象
+ *  @param cam 相机对象
+ */
+void
+Remove_Backfaces_OBJECT4DV1(OBJECT4DV1_PTR obj,CAM4DV1_PTR cam) {
+    //检查物体是否已被剔除
+    if (obj->state & OBJECT4DV1_STATE_CULLED)
+        return;
+    //处理物体的每一个多边形
+    for (int  poly = 0; poly < obj->num_polys; poly++) {
+        POLY4DV1_PTR curr_poly = &obj->plist[poly];
+        
+        if (!  (curr_poly->state & POLY4DV1_STATE_ACTIVE)
+            || (curr_poly->state & POLY4DV1_STATE_CLIPPED)
+            || (curr_poly->state & POLY4DV1_STATE_BACKFACE)
+            || (curr_poly->state & POLY4DV1_ATTR_2SIDED) )// 多边形 是双面的
+            continue;
+        //获取顶点列表中的顶点索引;多边形不是自包含的,而是基于物体的顶点列表
+        int vindex_0 = curr_poly->vert[0];
+        int vindex_1 = curr_poly->vert[1];
+        int vindex_2 = curr_poly->vert[2];
+        //我们将使用变换后的多边形顶点列表;因为背面消除只能在顶点被转换为世界坐标之后才能进行
+        
+        //需要计算多边形的面法线;顶点是按照顺时针方向排序 u=p0->p1,v=p0->p2,n = uxv
+        VECTOR4D u,v,n;
+        //计算u ,v
+        VECTOR4D_Build(&obj->vlist_trans[vindex_0],
+                       &obj->vlist_trans[vindex_1],
+                       &u);
+        VECTOR4D_Build(&obj->vlist_trans[vindex_0],
+                       &obj->vlist_trans[vindex_1],
+                       &v);
+        //计算叉积
+        VECTOR4D_Cross(&u, &v, &n);
+        //创建指向视点的向量
+        VECTOR4D  view;
+        VECTOR4D_Build(&obj->vlist_trans[vindex_0], &cam->pos, &view);
+        
+        //计算点积
+        float dp = VECTOR4D_Dot(&n, &view);
+        //如果dp<0 ,则多边形是不可见的
+        if (dp <= 0.0) {
+            SET_BIT(curr_poly->state, POLY4DV1_STATE_BACKFACE);
+        }
+    }
+}
+
+
+
+//2: 渲染列表的背面消除
+/**
+ *  如果在背面消除之前物体被存储在一起,或者只有游戏空间的多边形列表而没有物体,则需要对渲染列表执行
+ *  背面消除.当然,如果在将组成物体的多边形插入渲染列表时执行了背面消除,则没必要对渲染列表执行 背面消除
+ *  @param rend_list 渲染列表
+ *  @param cam       相机对象
+ */
+void
+Remove_Backfaces_RENDERLIST4DV1(RENDERLIST4DV1_PTR  rend_list,CAM4DV1_PTR cam) {
+    for(int poly = 0;poly < rend_list->num_polys;poly++) {
+        POLYF4DV1_PTR curr_poly = rend_list->poly_ptrs[poly];
+        if ((curr_poly == NULL)|| ! (curr_poly->state & POLY4DV1_STATE_ACTIVE)
+            || (curr_poly->state & POLY4DV1_STATE_CLIPPED)
+            || (curr_poly->state & POLY4DV1_STATE_BACKFACE)
+            || (curr_poly->state & POLY4DV1_ATTR_2SIDED) )// 多边形 是双面的
+            continue;//move onto next poly
+
+        //需要计算多边形的面法线;
+        VECTOR4D u , v, n;
+        
+        VECTOR4D_Build(&curr_poly->tvlist[0], &curr_poly->tvlist[1], &u);
+        VECTOR4D_Build(&curr_poly->tvlist[0], &curr_poly->tvlist[2], &v);
+        
+        VECTOR4D_Cross(&u, &v, &n);
+        
+        VECTOR4D view;
+        VECTOR4D_Build(&curr_poly->tvlist[0], &cam->pos, &view);
+
+        float dp = VECTOR4D_Dot(&n, &view);
+        
+        if(dp <= 0.0) SET_BIT(curr_poly->state, POLY4DV1_STATE_BACKFACE);
+    }
+}
+
+
+
+/******************************************************************************/
+
+// 相机坐标 到 透视坐标 变换 （这阶段的变换 为: 相机坐标 -> 透视坐标）
+// 简单地说: 给定点  p(X_world , Y_world , Z_world,1) 透视变换为:
+// X_par = viewing_distance * X_world / Z_world
+// Y_par = viewing_distance * aspect_ratio * Y_world / Z_world
+// 如果将视距(d)设置为1.0,则视平面坐标将是归一化的,即坐标的范围为:
+// x坐标--------  -1 到 1;  y 坐标 ----------- -1/ar 到 1/ar,其中ar为光栅化屏幕的宽高比
+
+//1: 物体的透视变换
+/**   这个函数 不是  基于 矩阵的
+     这个函数根据传入的相机对象将物体的相机坐标变换为 透视坐标,它根本不关心多边形本身,而只是对vlist_trams[]中的顶点进行变换
+ *  这只是执行透视变换的方法之一,你可能不采用这种方法,而是对渲染列表进行变换,因为渲染列表中的多边形表示的是透过背面消除的几何体,最后这个函数只是基于实验的目的而编写的,在真正的3d流水线中 物体不会完整地保留到这个阶段,因为物体可能只有一个多边形是可以见的,而这个函数对所有多边形都进行变换
+ *  相机对象中存储了执行透视变换所需要的所有信息,这包括(视距,视平面的 长 与 宽 以及视野)
+ *  waring: 这个函数中,没有检查 z值是否大于0,这种情况需要在之前的剔除 与 消除裁剪过程中进行处理,这里假设所有的顶点都是可以投影的
+ *  @param obj 3D物体
+ *  @param cam 相机对象
+ */
+void
+Camera_To_Perspective_OBJECT4DV1(OBJECT4DV1_PTR obj, CAM4DV1_PTR cam) {
+    //将物体的每个顶点变换为 透视坐标,这里假设物体已经被变换为相机坐标,且结果存储在vlist_trans[]中
+    for (int vertex = 0; vertex < obj->num_vertices; vertex++) {
+        float z = obj->vlist_trans[vertex].z;
+        //根据相机的观察参数对 顶点进行变换
+        obj->vlist_trans[vertex].x = cam->view_dist * obj->vlist_trans[vertex].x/z;
+        obj->vlist_trans[vertex].y = cam->view_dist * obj->vlist_trans[vertex].y * cam->aspect_ratio/z;
+    }
+}
+
+/**
+ *  矩阵来执行投影 (基于矩阵) 创建 相机坐标 到 透视坐标 变换矩阵
+ *  在大多数情况下,相机的视平面是归一化的(2X2),FOV为90度,这里假设使用的是4D齐次坐标,在某个时候执行
+   4D坐标到3D坐标 转换
+    这种操作 可能在透视变换 之后马上进行,也可能在屏幕变换之后才进行
+ *  @param cam 相机对象
+ *  @param m   透视变换 矩阵
+ */
+void
+Build_Camera_To_Perspective_MATRIX4X4(CAM4DV1_PTR cam,MATRIX4X4_PTR m) {
+ Mat_Init_4X4(m,
+              cam->view_dist, 0, 0, 0,
+              0, cam->view_dist * cam->aspect_ratio, 0, 0,
+              0, 0, 1, 1,
+              0, 0, 0, 0);
+}
+/*  执行透视变换后,顶点的w坐标不再为1.0,必须除以w分量 将齐次坐标转换为 非齐次坐标(真正的3d坐标) */
+
+/**
+ *   这个函数将变换后的顶点列表中所有的顶点从4D齐次坐标转换为3D坐标,方法为:将分量x,y,z都除以w
+ *  @param obj 3D物体
+ */
+
+void
+Convert_From_Homogeneous4D_OBJECT4DV1(OBJECT4DV1_PTR obj) {
+    for (int vertex = 0; vertex < obj->num_vertices; vertex++) {
+        VECTOR4D_DIV_BY_W(&obj->vlist_trans[vertex]);
+    }
+}
+
+
+//2 : 渲染列表的透视变换
+/**
+ *  不使用矩阵来执行 相机坐标到 透视坐标变换的函数(不基于矩阵)
+ *  根据传入的相机对象,将渲染列表中的每个多边形都变换为透视坐标, 如果在流水线的上游已经将物体转换为了多边形
+ *
+ *  @param rend_list 渲染列表
+ *  @param cam       相机对象
+ */
+void
+Camera_To_Perspective_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list, CAM4DV1_PTR cam) {
+    
+    for (int poly =0 ; poly < rend_list->num_polys; poly++) {
+        POLYF4DV1_PTR curr_poly = rend_list->poly_ptrs[poly];
+        
+        if ((curr_poly == NULL)
+            || (curr_poly->state & POLY4DV1_STATE_ACTIVE)
+            || (curr_poly->state & POLY4DV1_STATE_BACKFACE)
+            || (curr_poly->state & POLY4DV1_STATE_CLIPPED)) {
+            continue;
+        }
+        
+        for (int vertex = 0; vertex < 3; vertex++) {
+            float z = curr_poly->tvlist[vertex].z;
+            
+            curr_poly->tvlist[vertex].x = cam->view_dist * curr_poly->tvlist[vertex].x / z;
+            curr_poly->tvlist[vertex].y = cam->view_dist * curr_poly->tvlist[vertex].y
+            * cam->aspect_ratio / z;
+        }
+    }
+}
+
+
+
+/**
+ *  齐次坐标转换为非齐次坐标 4d坐标 转换 为 3d坐标 ; 将分量x,y,z都除以w
+ *
+ *  @param rend_list 渲染列表
+ */
+void
+Convert_From_Hogogeneous4D_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list) {
+    for (int poly = 0 ; poly < rend_list->num_polys; poly++) {
+        POLYF4DV1_PTR curr_poly = rend_list->poly_ptrs[poly];
+        if ((curr_poly == NULL)
+            || (curr_poly->state & POLY4DV1_STATE_ACTIVE)
+            || (curr_poly->state & POLY4DV1_STATE_BACKFACE)
+            || (curr_poly->state & POLY4DV1_STATE_CLIPPED)) {
+            continue;
+        }
+
+        for (int vertex = 0 ; vertex < 3; vertex++) {
+            //4d坐标 转 3d坐标
+            VECTOR4D_DIV_BY_W(&curr_poly->tvlist[vertex]);
+        }
+    }
+}
+
+
+
+/******************************************************************************/
+
+
+
+
+
+
 
 
 

@@ -239,11 +239,18 @@ void Convert_From_Homogeneous4D_OBJECT4DV1(OBJECT4DV1_PTR obj);
 void Camera_To_Perspective_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list, CAM4DV1_PTR cam);
 //齐次坐标转换为非齐次坐标 4d坐标 转换 为 3d坐标
 void Convert_From_Hogogeneous4D_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list);
+//1:物体的视口变换 非矩阵
+void Perspective_To_Screen_OBJECT4DV1(OBJECT4DV1_PTR obj,CAM4DV1_PTR cam) ;
+//1.2:物体的视口变换 矩阵
+void Build_Perspective_To_Screen_4D_MATRIX4X4(CAM4DV1_PTR cam,MATRIX4X4_PTR m);
 
+//2 :渲染列表 到 视口变换
+void Perspective_To_Screen_RENDERLIST4DV1(RENDERLIST4DV1 rend_list ,CAM4DV1_PTR cam);
 
-
-
-
+//1:物体的 相机坐标 到 屏幕坐标 变换
+void Camera_To_Perspective_Screen_OBJECT4DV1(OBJECT4DV1_PTR obj,CAM4DV1_PTR cam);
+//2: 渲染列表的 相机坐标 到 屏幕坐标 变换
+void Camera_To_Perspective_Screen_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam);
 
 
 

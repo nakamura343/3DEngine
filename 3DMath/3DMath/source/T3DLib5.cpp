@@ -865,12 +865,153 @@ Convert_From_Hogogeneous4D_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list) {
 
 /******************************************************************************/
 
+//透视坐标 到 屏幕(视口)坐标变换
+// (从某种意义上说,这一阶段为3D流水线的最后一个阶段,它将视平面坐标进行缩放,变成屏幕坐标)
+// 在这种变换中必须考虑这样一点,即大多数光栅化屏幕的原点位于左上角,y轴的方向与2d笛卡尔坐标系是相反的
+//当然如果在透视变换中,视平面的大小与视口相同,则无需执行缩放操作,但大多数情况下,需要执行平移,并反转y轴
+//因为在投影时,我们假设视平面的中心为 原点,其+x 轴指向右方,+y轴指向上方,而光栅屏幕的原点位于左上角
+// y轴方向与此相反,因此,无论什么情况下,都需要执行某种形式的视口变换.
+
+//1:物体的视口变换
+/**
+ *  不是基于 矩阵,根据传入的视口信息将物体的 透视坐标 变换 为 屏幕坐标,但完全不关心多边形本身,而只是
+ *  对vlist_trans[]中的顶点进行变换,这只是执行屏幕变换的方法之一
+ *  @param obj <#obj description#>
+ *  @param cam <#cam description#>
+ */
+void
+Perspective_To_Screen_OBJECT4DV1(OBJECT4DV1_PTR obj,CAM4DV1_PTR cam) {
+    //将物体的每个顶点变换为屏幕坐标
+    float alpha = (0.5 *cam->viewport_width - 0.5);
+    float beta =  (0.5 *cam->viewport_height- 0.5);
+    
+    for (int vertex = 0 ; vertex < obj->num_vertices; vertex++) {
+        obj->vlist_trans[vertex].x = alpha + alpha *obj->vlist_trans[vertex].x;
+        obj->vlist_trans[vertex].y = beta - beta *obj->vlist_trans[vertex].y;
+    }
+}
+
+//1.2:物体的视口变换 矩阵
+/**
+ *  这个函数创建透视坐标 到 屏幕坐标 变换矩阵
+ *
+ *  @param cam 相机对象
+ *  @param m   矩阵对象
+ */
+void
+Build_Perspective_To_Screen_4D_MATRIX4X4(CAM4DV1_PTR cam,MATRIX4X4_PTR m) {
+    float alpha = (0.5 *cam->viewport_width - 0.5);
+    float beta =  (0.5 *cam->viewport_height- 0.5);
+    Mat_Init_4X4(m, alpha,   0,     0,    0,
+                 0,      -beta,  0,    0,
+                 alpha,   beta,  1,    0,
+                 0,       0,     0,    1);
+
+}
+
+
+//2 :渲染列表 到 视口变换
+/**
+ *  非矩阵;这个函数只对 坐标进行缩放,并反转y轴
+ *
+ *  @param rend_list 渲染列表
+ *  @param cam       相机对象
+ */
+void
+Perspective_To_Screen_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list ,CAM4DV1_PTR cam) {
+    for (int poly = 0; poly < rend_list->num_polys; poly++)
+    {
+        POLYF4DV1_PTR curr_poly = rend_list->poly_ptrs[poly];
+        if ((curr_poly==NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
+            (curr_poly->state & POLY4DV1_STATE_CLIPPED ) ||
+            (curr_poly->state & POLY4DV1_STATE_BACKFACE) )
+            continue; // move onto next poly
+        
+        float alpha = (0.5*cam->viewport_width-0.5);
+        float beta  = (0.5*cam->viewport_height-0.5);
+        
+        for (int vertex = 0; vertex < 3; vertex++){
+            curr_poly->tvlist[vertex].x = alpha + alpha*curr_poly->tvlist[vertex].x;
+            curr_poly->tvlist[vertex].y = beta  - beta *curr_poly->tvlist[vertex].y;
+        }
+    }
+}
 
 
 
+/******************************************************************************/
+
+// 合并透视变换 和  屏幕变换 （非矩阵）
+//一般而言,执行相机坐标 到 屏幕坐标 变换时,最快捷的方式是创建一个手工完成这项工作并将x和y坐标 除以z的函数
+
+//1 : 物体的 相机坐标 到 屏幕坐标 变换
+/**
+ *  这个函数减少了更多地数学计算,我们无需根据视口的大小相应地缩放视平面坐标,因为物体被投影到大小为
+ *  viewport_width * viewport_height的视平面上,这进一步减少了计算量
+ *
+ *  @param obj <#obj description#>
+ *  @param cam <#cam description#>
+ */
+void
+Camera_To_Perspective_Screen_OBJECT4DV1(OBJECT4DV1_PTR obj,CAM4DV1_PTR cam) {
+    float alpha = (0.5*cam->viewport_width-0.5);
+    float beta  = (0.5*cam->viewport_height-0.5);
+    
+    for (int vertex = 0; vertex < obj->num_vertices; vertex++) {
+    
+        float z = obj->vlist_trans[vertex].z;
+        obj->vlist_trans[vertex].x = cam->view_dist*obj->vlist_trans[vertex].x/z;
+        obj->vlist_trans[vertex].y = cam->view_dist*obj->vlist_trans[vertex].y/z;
+        obj->vlist_trans[vertex].x =  obj->vlist_trans[vertex].x + alpha;
+        obj->vlist_trans[vertex].y = -obj->vlist_trans[vertex].y + beta;
+        
+    }
+}
+
+//2 渲染列表的 相机坐标 到 屏幕坐标 变换  （到这个阶段,3D流水线的大部分工作已经完成,我们可以一次性执行透视变换和屏幕变换,以节省时间和计算量,大多数情况下，我们采用这种合二为一的方法,至少使用手工方法来执行透视变换和屏幕变换）
+//  将坐标变换为3D的，因为不想将4D坐标到3D坐标转换的工作 留到流水线的后续阶段进行
+/**
+ *  对渲染列表一次执行 相机坐标到 屏幕坐标 变换 （不是基于矩阵的）
+ *
+ *  @param rend_list <#rend_list description#>
+ *  @param cam       <#cam description#>
+ */
+void
+Camera_To_Perspective_Screen_RENDERLIST4DV1(RENDERLIST4DV1_PTR rend_list,CAM4DV1_PTR cam) {
+    for (int poly = 0; poly < rend_list->num_polys; poly++) {
+        POLYF4DV1_PTR curr_poly = rend_list->poly_ptrs[poly];
+        
+        if ((curr_poly==NULL) || !(curr_poly->state & POLY4DV1_STATE_ACTIVE) ||
+            (curr_poly->state & POLY4DV1_STATE_CLIPPED ) ||
+            (curr_poly->state & POLY4DV1_STATE_BACKFACE) )
+            continue; // move onto next poly
+        
+        float alpha = (0.5*cam->viewport_width-0.5);
+        float beta  = (0.5*cam->viewport_height-0.5);
+        
+        for (int vertex = 0; vertex < 3; vertex++) {
+        
+            float z = curr_poly->tvlist[vertex].z;
+            
+            curr_poly->tvlist[vertex].x = cam->view_dist*curr_poly->tvlist[vertex].x/z;
+            curr_poly->tvlist[vertex].y = cam->view_dist*curr_poly->tvlist[vertex].y/z;
+            curr_poly->tvlist[vertex].x =  curr_poly->tvlist[vertex].x + alpha;
+            curr_poly->tvlist[vertex].y = -curr_poly->tvlist[vertex].y + beta;
+        }
+    }
+}
 
 
-
+/**
+ *  渲染3D世界 (现在的3D流水线)
+  阶段0 : 加载并放置物体
+  阶段1 : 局部物体坐标 到 世界坐标 变换
+  阶段2 : 物体剔除  和 背面消除
+  阶段3 : 世界坐标 到 相机坐标 变换
+  阶段4 : 相机坐标 到 透视坐标 变换
+  阶段5 : 透视坐标 到 屏幕坐标 变换
+  阶段6 : 渲染几何体(线框引擎)
+ */
 
 
 
